@@ -414,7 +414,7 @@ class SettingsWindow:
         self.label_set3_1.frame.config(width=45)
         self.label_set3_1.frame.grid(row=4, column=0, sticky=tk.W + tk.E, columnspan=4)
 
-        self.label_set4 = MyLabelStyle(self.window, "Rename downloaded demos")
+        self.label_set4 = MyLabelStyle(self.window, "Rename downloaded demos to ")
         self.label_set4.frame.grid(row=5, column=1, sticky=tk.W, padx=5, pady=5)
         self.btn_set3 = MyButtonStyle(self.window, "ON",
                                       lambda: change_setting(self.btn_set3, self._check_get_name()), "rename_dl")
