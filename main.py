@@ -1,4 +1,6 @@
 import os
+import inspect as i
+import shutil
 import tkinter as tk
 import tkinter.filedialog as tkfd
 import scapy.all as scpa
@@ -10,14 +12,17 @@ import subprocess as sp
 import webbrowser as web
 import platform
 import requests as req
+import bz2
 
 list_settings = [
     ["stop_label", False],
-    ["browser_dl", True]
+    ["browser_dl", False],
+    ["rename_dl", False]
 ]
 list_links = list()
 # browser_path = None
-download_path = os.getcwd() + r"\replays" + "\\"
+# download_path = None
+# exec_path = None
 npcap_link = "https://nmap.org/npcap/dist/npcap-0.9988.exe"
 found_time = None
 thread_sniff = None
@@ -40,7 +45,7 @@ def process_packet(window):
     def find_url(pkt):
         global event_pkt_found, found_time
         url = pkt[scplh.HTTPRequest].Host.decode() + pkt[scplh.HTTPRequest].Path.decode()
-        if url.find(".dem.bz2") != -1 and url != window.entry1_url.text.get():
+        if url.find("/730/") != -1 and url != window.entry1_url.text.get():
             found_time = dt.datetime.now()
             list_links.append(url)
             window.entry1_url.text.set(url)
@@ -71,6 +76,15 @@ def find_browser_path():
         return None
 
 
+def find_file_path(exe=None):
+    temp = os.path.abspath(i.getsourcefile(lambda: 0))
+    temp = temp[:temp.rfind("\\")]
+    if exe is not None:
+        return temp + "\\"
+    temp = temp + r"\replays" + "\\"
+    return temp
+
+
 def get_interfaces():
     interfaces_list = ["None  (select this if not sure)"]
     for x in scpa.IFACES.data.values():
@@ -99,21 +113,53 @@ def check_npcap(window):
         return False
 
 
+def save_settings():
+    global list_settings, exec_path, download_path
+    file = open(exec_path + "ow_config", "w")
+    file.write(download_path + "\n")
+    for x in list_settings:
+        file.write(str(x) + "\n")
+    file.close()
+
+
+def import_settings():
+    global list_settings, exec_path, download_path
+    try:
+        file = open(exec_path + "ow_config", "r")
+    except FileNotFoundError:
+        return
+    download_path = file.readline().strip("\n")
+    index = 0
+    for line in file:
+        text = line[line.find(",") + 2:line.find("]")]
+        if text == "True":
+            list_settings[index][1] = True
+        elif text == "False":
+            list_settings[index][1] = False
+        else:
+            list_settings[index][1] = text[1:-1]
+        index += 1
+    file.close()
+
+
 def change_setting(button, value=None):
     for item in list_settings:
         if item[0] == button.btn.winfo_name():
             if value is not None:
-                item[1] = value
+                if bool(item[1]) is True:
+                    item[1] = False
+                else:
+                    item[1] = value
             else:
                 item[1] = not item[1]
             break
-    update_settings(button)
+    update_buttons(button)
 
 
-def update_settings(button):
+def update_buttons(button):
     for item in list_settings:
         if item[0] == button.btn.winfo_name():
-            if item[1] is True:
+            if bool(item[1]) is True:
                 button.text.set("ON")
                 button.btn.config(relief=tk.SUNKEN, bg="#404040", activebackground="#808080")
             else:
@@ -122,19 +168,29 @@ def update_settings(button):
 
 
 def download_from_link(link, button):
+    global list_settings
     r = req.get(link, stream=True)
-    chunk_size = 8192
+    chunk_size = 16384
     size_total = int(r.headers["Content-Length"])
     size_total_mb = str(int(size_total / (1 << 20))) + "MB"
     size_curr = 0
-    with open(download_path + "OW_replay" + ".dem.bz2", "wb") as destination:
+    btn_name = button.text.get()
+    if list_settings[2][1] is False:
+        name = list_links[-1][list_links[-1].rfind("/") + 1:]
+    else:
+        name = list_settings[2][1]
+    with open(download_path + name, "wb") as dest:
         for chunk in r.iter_content(chunk_size=chunk_size):
-            destination.write(chunk)
+            dest.write(chunk)
             percent = int(size_curr / size_total * 100)
             button.text.set(str(percent) + "%  of  " + size_total_mb)
             size_curr += chunk_size
-    button.text.set("Download DEMO")
-    print("DL FINISHED")
+    button.text.set("extracting..")
+    name = name[:name.rfind(".")]
+    with bz2.BZ2File(download_path + name + ".bz2") as file, open(download_path + name, "wb") as dest:
+        shutil.copyfileobj(file, dest, chunk_size)
+    os.remove(download_path + name + ".bz2")
+    button.text.set(btn_name)
 
 
 def open_link(link, button):
@@ -174,7 +230,6 @@ def calc_window_pos(x, y):
 
 def placeholder():
     print("test")
-    print(thread_download.is_alive())
 
 
 class MyButtonStyle:
@@ -239,7 +294,8 @@ class MyEntryStyle:
         self.text = tk.StringVar()
         self.text.set(label)
         self.frame = tk.Entry(root, textvariable=self.text, state="readonly")
-        self.frame.config(justify=tk.CENTER, font=("arial", 10, ""), borderwidth=2, readonlybackground="#f0f0f0")
+        self.frame.config(justify=tk.CENTER, font=("arial", 10, ""), borderwidth=2, bg="#f0f0f0",
+                          readonlybackground="#f0f0f0")
 
 
 class MyMenuStyle:
@@ -285,10 +341,16 @@ class LinkListWindow:
 
 class SettingsWindow:
     def _update_all_settings(self):
-        update_settings(self.btn_set1)
-        update_settings(self.btn_set2)
+        update_buttons(self.btn_set1)
+        update_buttons(self.btn_set2)
+        update_buttons(self.btn_set3)
+        if list_settings[2][1] is not False:
+            self.entry_demo.text.set(list_settings[2][1])
+        else:
+            self.entry_demo.text.set("OW_replay")
+        self._check_get_name()
 
-    def set_download_path(self):
+    def _set_download_path(self):
         global download_path
         path = tkfd.askdirectory() + "/"
         if path == "/":
@@ -296,9 +358,31 @@ class SettingsWindow:
         self.entry_browse.text.set(path)
         download_path = path
 
+    def _check_get_name(self):
+        name = ""
+        list1 = " \n\\/"
+        for letter in self.entry_demo.text.get():
+            if list1.find(letter) == -1:
+                name += letter
+        if name == "":
+            self.entry_demo.text.set("OW_replay")
+            return "OW_replay"
+        if len(name) > 45:
+            self.entry_demo.text.set(name[:45])
+            return name[:45]
+        self.entry_demo.text.set(name)
+        return name
+
+    def _update_on_save(self):
+        global list_settings
+        self._check_get_name()
+        if list_settings[2][1] is not False:
+            list_settings[2][1] = self.entry_demo.text.get()
+        save_settings()
+
     def __init__(self, root):
         self.window = tk.Toplevel(root)
-        self.window.title("yay settings")
+        self.window.title("Settings")
         self.window.minsize(330, 80)
         sizex = self.window.minsize()[0]
         # sizey = self.window.minsize()[1]
@@ -319,19 +403,34 @@ class SettingsWindow:
         self.label_set3 = MyLabelStyle(self.window,
                                        "*" * 30 + "Download location when not using the browser" + "*" * 30)
         self.label_set3.frame.config(width=45)
-        self.label_set3.frame.grid(row=2, column=0, sticky=tk.W + tk.E, pady=5, columnspan=3)
-        self.btn_browse = MyButtonStyle(self.window, "Browse", self.set_download_path)
+        self.label_set3.frame.grid(row=2, column=0, sticky=tk.W + tk.E, pady=5, columnspan=4)
+        self.btn_browse = MyButtonStyle(self.window, "Browse", self._set_download_path)
         self.btn_browse.btn.grid(row=3, column=0, sticky=tk.W + tk.E, padx=5)
         self.entry_browse = MyEntryStyle(self.window, download_path)
         self.entry_browse.frame.grid(row=3, column=1, sticky=tk.W + tk.E, padx=5, columnspan=2)
+        self.btn_opendl = MyButtonStyle(self.window, "Open", lambda: os.system(f"start {download_path}"))
+        self.btn_opendl.btn.grid(row=3, column=3, sticky=tk.E, padx=5, pady=5)
+        self.label_set3_1 = MyLabelStyle(self.window, "*" * 100)
+        self.label_set3_1.frame.config(width=45)
+        self.label_set3_1.frame.grid(row=4, column=0, sticky=tk.W + tk.E, columnspan=4)
 
-        self.btn_save = MyButtonStyle(self.window, "Save", placeholder)
-        self.btn_save.btn.grid(row=5, column=2, sticky=tk.W + tk.E, padx=5, pady=5)
+        self.label_set4 = MyLabelStyle(self.window, "Rename downloaded demos")
+        self.label_set4.frame.grid(row=5, column=1, sticky=tk.W, padx=5, pady=5)
+        self.btn_set3 = MyButtonStyle(self.window, "ON",
+                                      lambda: change_setting(self.btn_set3, self._check_get_name()), "rename_dl")
+        self.btn_set3.btn.grid(row=5, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+        self.entry_demo = MyEntryStyle(self.window, "")
+        self.entry_demo.frame.config(state="normal")
+        self.entry_demo.frame.grid(row=5, column=2, sticky=tk.W + tk.E, padx=5, columnspan=2)
+
+        self.btn_save = MyButtonStyle(self.window, "Save to file", self._update_on_save)
+        self.btn_save.btn.grid(row=6, column=3, sticky=tk.E, padx=5, pady=5)
 
         self._update_all_settings()
         self.window.grid_columnconfigure(0, minsize=0.15 * sizex, weight=1)
-        self.window.grid_columnconfigure(1, minsize=0.7 * sizex, weight=1)
+        self.window.grid_columnconfigure(1, minsize=0.5 * sizex, weight=1)
         self.window.grid_columnconfigure(2, minsize=0.15 * sizex, weight=1)
+        self.window.grid_columnconfigure(3, minsize=0.2 * sizex, weight=1)
         self.window.update_idletasks()
         self.window.geometry("+%d+%d" % (calc_window_pos(root, self.window)))
         self.window.grab_set()
@@ -412,8 +511,8 @@ class MainAppWindow:
         self.window.grid_columnconfigure(0, minsize=0.3 * sizex, weight=1)
         self.window.grid_columnconfigure(1, minsize=0.2 * sizex, weight=1)
         self.window.grid_columnconfigure(2, minsize=0.15 * sizex, weight=1)
-        self.window.grid_columnconfigure(3, minsize=0.15 * sizex, weight=1)
-        self.window.grid_columnconfigure(4, minsize=0.2 * sizex, weight=1)
+        self.window.grid_columnconfigure(3, minsize=0.2 * sizex, weight=1)
+        self.window.grid_columnconfigure(4, minsize=0.15 * sizex, weight=1)
         self.window.update_idletasks()
 
 
@@ -422,5 +521,8 @@ if __name__ == "__main__":
     thread_time = t.Thread(target=lambda: update_time_label(app.label3_time), daemon=True)
     thread_time.start()
     browser_path = find_browser_path()
+    download_path = find_file_path()
+    exec_path = find_file_path(True)
+    import_settings()
 
     app.window.mainloop()
