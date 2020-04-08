@@ -4,6 +4,16 @@ It's a custom parser that returns a dictionary with rounds and playerstats.
 I didn't parse demo entities yet (todo) (will be easier to get stats and other advanced stats
 like player position, where are they looking, ranks...)
 
+## Thanks to
+1. (https://github.com/ValveSoftware/csgo-demoinfo)
+2. (https://github.com/ibm-dev-incubator/demoparser)
+3. (https://github.com/holosiek/csgodemo-python)
+4. (https://github.com/markus-wa/demoinfocs-golang)
+5. (https://github.com/SteamDatabase/GameTracking-CSGO)  
+  
+Without looking (and copying :D) at other projects it would have been impossible for me to understand how csgo demos work.  
+Well, I still need to understand how to parse entities... whatever
+
 ## To use this:
 ```python
 import DemoParser
