@@ -38,5 +38,5 @@ CSGO Overwatch revealer by sniffing packets
 **A**: Check who has the same score as The Suspect and click his name  
 
 **Q**: Not a question, but k/d/a in your app is wrong  
-**A**: Could be, in my app it's displayed as k/a/d and I'm not sure I covered all edge cases
+**A**: Could be, in my app it's displayed as k/a/d and I'm not sure I covered all edge cases  
 Also when you select a round, it shows the stats from the end of that round.
