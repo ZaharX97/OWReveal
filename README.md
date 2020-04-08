@@ -4,7 +4,7 @@ CSGO Overwatch revealer by sniffing packets
 ![Main window](https://i.imgur.com/UU55Csw.jpg) ![Settings](https://i.imgur.com/ACZiZkm.jpg)
 
 ## Versions:
-* v**1.0** [Download]()
+* v**1.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/1.0)
   * First release, only finds the demo link
 
 * v**2.0** [Download]()
