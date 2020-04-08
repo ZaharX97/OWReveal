@@ -18,6 +18,7 @@ Well, I still need to understand how to parse entities... whatever
 ```python
 import DemoParser
 parser = DemoParser(path_to_demo)
+parser2 = DemoParser(path_to_demo, path_to_dump_file) # it prints out some data from demo if u specify a dump path
 stats = parser.parse()
 ```
 * if all went well, stats should be a dictionary like  
