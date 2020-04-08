@@ -4,15 +4,16 @@ CSGO Overwatch revealer by sniffing packets
 ![Main window](https://i.imgur.com/UU55Csw.jpg) ![Settings](https://i.imgur.com/ACZiZkm.jpg)
 
 ## Versions:
-* v**1.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/1.0)
-  * First release, only finds the demo link
-
-* v**2.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/2.0)
-  * added demo parsing, see player stats in each round
-  * click on player to open steam profile
 
 * v**2.1** todo
   * I want to add a watchlist to add suspect players
+  
+* v**2.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/2.0)
+  * added demo parsing, see player stats in each round
+  * click on player to open steam profile
+  
+* v**1.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/1.0)
+  * First release, only finds the demo link
  
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/dist/npcap-0.9988.exe)
