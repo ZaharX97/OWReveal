@@ -7,7 +7,7 @@ CSGO Overwatch revealer by sniffing packets
 * v**1.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/1.0)
   * First release, only finds the demo link
 
-* v**2.0** [Download]()
+* v**2.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/2.0)
   * added demo parsing, see player stats in each round
   * click on player to open steam profile
 
