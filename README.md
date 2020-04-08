@@ -30,6 +30,9 @@ CSGO Overwatch revealer by sniffing packets
 6. The .exe should be in /dist/ folder
 
 ## Q&A
+**Q**: Will I get VAC banned?
+**A**: Probably not, it does the same thing as Wireshark to get the link  
+
 **Q**: What is npcap and why do I need it?  
 **A**: I'm not sure but on Windows it's needed to sniff packets  
 
