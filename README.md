@@ -1,7 +1,7 @@
 # OWReveal
 CSGO Overwatch revealer by sniffing packets
 
-![Main window](https://i.imgur.com/UU55Csw.jpg) ![Settings](https://i.imgur.com/ACZiZkm.jpg)
+![Main window](https://i.imgur.com/zyEJq0V.png) ![Settings](https://i.imgur.com/ACZiZkm.jpg)
 
 ## Versions:
 
