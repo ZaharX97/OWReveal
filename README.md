@@ -5,8 +5,8 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Versions:
 
-* v**2.1** todo
-  * I want to add a watchlist to add suspect players
+* v**3.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.0)
+  * Added a watchlist to track suspect players
   
 * v**2.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/2.0)
   * added demo parsing, see player stats in each round
