@@ -29,8 +29,7 @@ stats = parser.parse()
   .  
   .  
   last round: MyRoundStats object  
-  "nrplayers": 10 or 4  
-  "map": mapname  
+  "otherdata": {"nrplayers": 10 (5v5) or 4 (wingman), "map": mapname}  
 }  
 
 # MyRoundStats structure
