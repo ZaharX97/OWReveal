@@ -278,6 +278,7 @@ def check_vac(window):
 def actual_check_vac():
     global event_check_vac
     newbans = 0
+    newpb = ""
     failed = 0
     try:
         rfile = open(exec_path + "watchlist", "r", encoding="utf-8")
@@ -308,6 +309,7 @@ def actual_check_vac():
             if days in (0, 1) or days <= delta:
                 newbans += 1
                 player.banned = "Y"
+                newpb += player.name + "\n"
             wfile.write(player.ret_string())
         else:
             failed += 1
@@ -318,9 +320,10 @@ def actual_check_vac():
     event_check_vac.wait(3)
     os.remove(exec_path + "watchlist")
     os.rename(exec_path + "watchlist.temp", exec_path + "watchlist")
-    text = "{} new bans.".format(newbans)
+    text = "{} new bans.\n".format(newbans)
+    text += newpb
     if failed > 0:
-        text += "\nFailed to check {} players".format(failed)
+        text += "Failed to check {} players".format(failed)
     MyAlertWindow(app.window, text)
 
 
