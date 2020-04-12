@@ -59,8 +59,9 @@ class DemoParser:
                 self.STATS.update(
                     {self.round_current: MyRoundStats(self.team_score[2], self.team_score[3],
                                                       self.PLAYERS)})
-                self.STATS.update({"nrplayers": self._max_players})
-                self.STATS.update({"map": self.header.map_name})
+                self.STATS.update({"otherdata": {}})
+                self.STATS["otherdata"].update({"nrplayers": self._max_players})
+                self.STATS["otherdata"].update({"map": self.header.map_name})
                 # print(self.progress, "%  >DEMO ENDED<")
                 # for p2 in self.PLAYERS.values():
                 #     print("name= {} / team= {}".format(p2.name, p2.start_team))

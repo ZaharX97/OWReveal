@@ -35,7 +35,9 @@ found_time = None
 thread_sniff = t.Thread()
 thread_download = t.Thread()
 thread_analyze = t.Thread()
+thread_check_vac = t.Thread()
 event_pkt_found = t.Event()
+event_check_vac = t.Event()
 
 
 def update_time_label(label):
@@ -217,13 +219,13 @@ def analyze_demo(path, button, btn_name):
     button.text.set("analyzing...")
     demo_stats = DemoParser(path)
     demo_stats = demo_stats.parse()
-    demo_nrplayers = demo_stats["nrplayers"]
-    rounds_list = [None] * (len(demo_stats) - 2)
-    for i2 in range(1, len(demo_stats) - 1):
+    demo_nrplayers = demo_stats["otherdata"]["nrplayers"]
+    rounds_list = [None] * (len(demo_stats) - 1)
+    for i2 in range(1, len(demo_stats)):
         rounds_list[i2 - 1] = "Round " + str(i2)
     app.btn6_round.update(rounds_list, cmd=app.update_stats)
     # app.btn6_round.text.set("Round " + str(len(demo_stats) - 2))
-    app.update_stats(len(demo_stats) - 2)
+    app.update_stats(len(demo_stats) - 1)
     button.text.set(btn_name)
 
 
@@ -246,10 +248,12 @@ def open_link(link, button):
 
 
 def copy_to_clipboard(root, text: str or list):
+    if len(text) == 0 or (type(text) is str and text == "http://"):
+        return
     root.clipboard_clear()
     if type(text) is str:
         root.clipboard_append(text)
-    elif len(text) > 0:
+    else:
         nice_list = ""
         for x in text:
             nice_list = nice_list + root.get(x) + "\n"
@@ -257,12 +261,129 @@ def copy_to_clipboard(root, text: str or list):
 
 
 def calc_window_pos(x, y):
+    if x.winfo_height() - y.winfo_height() < 0:
+        return x.winfo_x() + (x.winfo_width() - y.winfo_width()) / 2, x.winfo_y()
     return x.winfo_x() + (x.winfo_width() - y.winfo_width()) / 2, x.winfo_y() + (
             x.winfo_height() - y.winfo_height()) / 2
 
 
+def check_vac(window):
+    global thread_check_vac
+    window.close_and_update()
+    thread_check_vac = t.Thread(target=actual_check_vac, daemon=True)
+    thread_check_vac.start()
+    MyAlertWindow(app.window, "Started checking for new VAC bans\n1 player / sec")
+
+
+def actual_check_vac():
+    global event_check_vac
+    newbans = 0
+    failed = 0
+    try:
+        rfile = open(exec_path + "watchlist", "r", encoding="utf-8")
+        wfile = open(exec_path + "watchlist.temp", "w", encoding="utf-8")
+    except Exception:
+        MyAlertWindow(app.window, "Error4 opening WatchList")
+        return
+    for line in rfile:
+        player = MyWatchPlayer(line)
+        if player.banned == "Y":
+            wfile.write(player.ret_string())
+            continue
+        r = req.get(player.link)
+        if r.status_code == req.codes.ok:
+            i3 = r.content.find(b" day(s) since last ban")
+            if i3 == -1:
+                wfile.write(player.ret_string())
+                continue
+            data = r.content[:i3]
+            days = data[data.rfind(b"\t") + 1:i3].decode("utf-8")
+            delta = str(dt.datetime.now() - player.dtt)
+            delta = delta[:delta.find(" day")]
+            try:
+                days = int(days)
+                delta = int(delta)
+            except Exception:
+                delta = 0
+            if days in (0, 1) or days <= delta:
+                newbans += 1
+                player.banned = "Y"
+            wfile.write(player.ret_string())
+        else:
+            failed += 1
+            wfile.write(player.ret_string())
+        event_check_vac.wait(1)
+    wfile.close()
+    rfile.close()
+    event_check_vac.wait(3)
+    os.remove(exec_path + "watchlist")
+    os.rename(exec_path + "watchlist.temp", exec_path + "watchlist")
+    text = "{} new bans.".format(newbans)
+    if failed > 0:
+        text += "\nFailed to check {} players".format(failed)
+    MyAlertWindow(app.window, text)
+
+
 def placeholder():
     print("test")
+
+
+class MyWatchPlayer:
+    def _read(self, amount, string=False):
+        if amount <= 0:
+            return
+        if string:
+            ret = self.data[1:amount + 2]
+            self.data = self.data[amount + 2:]
+        else:
+            ret = self.data[:amount]
+            self.data = self.data[amount:]
+        return ret
+
+    def update(self, name, link, datetime: str):
+        self.name = name
+        self.link = link
+        self.datetime = datetime
+        self.date = datetime[:10]
+
+    def ret_string(self):
+        ret = ""
+        ret += "{} {} {} ".format(self.link[self.link.rfind("/") + 1:], self.banned,
+                                  self.dtt.strftime("%d-%b-%Y %H:%M:%S"))
+        ret += "{}={} ".format(len(self.name), self.name)
+        ret += "{}={} {}={}\n".format(len(self.kad), self.kad, len(self.map), self.map)
+        return ret
+
+    def __init__(self, data=None):
+        if data is None:
+            self.name = None
+            self.link = None
+            self.datetime = None
+            self.date = None
+        else:
+            self.data = data
+            # length = self.data[:self.data.find("=")]
+            # self._read(2 + len(length))
+            self.link = "https://steamcommunity.com/profiles/" + self._read(17, string=False)
+            self._read(1)
+            self.banned = self._read(1)
+            self._read(1)
+            self.dtt = dt.datetime.strptime(self._read(20, string=False), "%d-%b-%Y %H:%M:%S")
+            self.date = self.dtt.strftime("%d-%b-%Y %H:%M:%S")[:11]
+            self._read(1)
+            length = self.data[:self.data.find("=")]
+            self._read(1 + len(length))
+            self.name = self._read(int(length), string=False)
+            self._read(1)
+            length = self.data[:self.data.find("=")]
+            self._read(1 + len(length))
+            self.kad = self._read(int(length), string=False)
+            self._read(1)
+            length = self.data[:self.data.find("=")]
+            self._read(1 + len(length))
+            self.map = self._read(int(length), string=False)
+            del self.data
+            del length
 
 
 class MyButtonStyle:
@@ -271,6 +392,14 @@ class MyButtonStyle:
         self.text.set(label)
         self.btn = tk.Button(root, textvariable=self.text, command=cmd, name=name)
         self.btn.config(font=("arial", 10, ""), fg="white", bg="#101010", activebackground="#404040", bd=3)
+
+
+class MyCheckButtonStyle:
+    def __init__(self, root):
+        self.value = tk.BooleanVar()
+        self.value.set(tk.FALSE)
+        self.btn = tk.Checkbutton(root, variable=self.value, onvalue=tk.TRUE, offvalue=tk.FALSE)
+        self.btn.config(bg="#101010", activebackground="#101010")
 
 
 class MyOptMenuStyle:
@@ -304,7 +433,7 @@ class MyListboxStyle:
         self.items_box = tk.StringVar(value=items)
         if len(items) > 0:
             length = len(items[-1])
-            vlength = len(items)
+            vlength = len(items) if len(items) < 35 else 35
         else:
             length = 5
             vlength = 5
@@ -351,11 +480,13 @@ class MyMenuStyle:
 class MyAlertWindow:
     def __init__(self, root, message):
         self.window = tk.Toplevel(root)
+        self.window.transient(root)
         self.window.title("error")
         self.window.minsize(100, 50)
         self.window.resizable(False, False)
         self.window.attributes("-topmost")
         self.window.config(bg="#101010")
+        self.window.protocol("WM_DELETE_WINDOW", self.window.destroy)
         self.label = MyLabelStyle(self.window, message)
         self.label.frame.pack()
         self.btn_close = MyButtonStyle(self.window, "Close", self.window.destroy)
@@ -369,6 +500,7 @@ class MyAlertWindow:
 class LinkListWindow:
     def __init__(self, root):
         self.window = tk.Toplevel(root)
+        self.window.transient(root)
         self.window.title("Past LINKs")
         self.window.minsize(150, 150)
         self.window.config(bg="#101010")
@@ -384,6 +516,323 @@ class LinkListWindow:
         self.box.box.selection_set(0)
 
 
+class WatchListWindow:
+    def _remove_pl(self):
+        for i2 in range(10):
+            if self.watchlist[i2]["btn"].value.get() == tk.TRUE and self.watchlist[i2]["kad"].text.get() != "":
+                val = self.watchlist[i2]["nr"].text.get()[:self.watchlist[i2]["nr"].text.get().find(".")]
+                val = int(val)
+                if val not in self.to_remove:
+                    self.to_remove.add(val)
+                    self.watchlist[i2]["name"].text.set("TO REMOVE")
+                    self.watchlist[i2]["kad"].text.set("TO REMOVE")
+                    self.watchlist[i2]["map"].text.set("TO REMOVE")
+                    self.watchlist[i2]["date"].text.set("TO REMOVE")
+                else:
+                    self.to_remove.discard(val)
+                    self.watchlist[i2]["name"].text.set("TO UPDATE")
+                    self.watchlist[i2]["kad"].text.set("TO UPDATE")
+                    self.watchlist[i2]["map"].text.set("TO UPDATE")
+                    self.watchlist[i2]["date"].text.set("TO UPDATE")
+
+    def _mark_ban(self):
+        for i2 in range(10):
+            if self.watchlist[i2]["btn"].value.get() == tk.TRUE and self.watchlist[i2]["kad"].text.get() != "":
+                val = self.watchlist[i2]["nr"].text.get()[:self.watchlist[i2]["nr"].text.get().find(".")]
+                val = int(val)
+                if val not in self.to_ban:
+                    self.to_ban.add(val)
+                    if self.watchlist[i2]["player"].banned == "Y":
+                        self.watchlist[i2]["name"].frame.config(bg="#101010")
+                    else:
+                        self.watchlist[i2]["name"].frame.config(bg="#ff6666")
+                else:
+                    self.to_ban.discard(val)
+                    if self.watchlist[i2]["player"].banned == "N":
+                        self.watchlist[i2]["name"].frame.config(bg="#101010")
+                    else:
+                        self.watchlist[i2]["name"].frame.config(bg="#ff6666")
+
+    def _update_page(self, page):
+        if page is None or page < 1 or page == self._lastpage or page > self._maxpages:
+            return
+        if page < self._lastpage:
+            self.rfile.seek(0, 0)
+            self.findex = 1
+        self.entry_page.text.set(str(page))
+        self._lastpage = page
+        while self.findex < page * 10 - 9:
+            self.rfile.readline()
+            self.findex += 1
+        for i2 in range(10):
+            line = self.rfile.readline()
+            if not line:
+                break
+            player = MyWatchPlayer(line)
+            if self.findex in self.to_remove:
+                player = None
+            self.watchlist[i2].update({"player": player})
+            self.watchlist[i2]["btn"].btn.grid()
+            self.watchlist[i2]["btn"].btn.deselect()
+            self.watchlist[i2]["nr"].text.set(str(self.findex) + ".")
+            self.watchlist[i2]["name"].text.set(player.name if player else "TO REMOVE")
+            if player:
+                if self.findex in self.to_ban:
+                    if player.banned == "Y":
+                        self.watchlist[i2]["name"].frame.config(bg="#101010")
+                    else:
+                        self.watchlist[i2]["name"].frame.config(bg="#ff6666")
+                else:
+                    if player.banned == "Y":
+                        self.watchlist[i2]["name"].frame.config(bg="#ff6666")
+                    else:
+                        self.watchlist[i2]["name"].frame.config(bg="#101010")
+            self.watchlist[i2]["kad"].text.set(player.kad if player else "TO REMOVE")
+            self.watchlist[i2]["map"].text.set(player.map if player else "TO REMOVE")
+            self.watchlist[i2]["date"].text.set(player.date if player else "TO REMOVE")
+            self.findex += 1
+        i2 = (self.findex - 1) % 10
+        if i2 != 0:
+            while i2 <= 9:
+                self.watchlist[i2]["btn"].btn.grid_remove()
+                self.watchlist[i2]["nr"].text.set("")
+                self.watchlist[i2]["name"].text.set("")
+                self.watchlist[i2]["kad"].text.set("")
+                self.watchlist[i2]["map"].text.set("")
+                self.watchlist[i2]["date"].text.set("")
+                self.watchlist[i2]["player"] = None
+                i2 += 1
+
+    def _elect_btns(self):
+        if not len(self.watchlist):
+            return
+        if self.watchlist[0]["btn"].value.get() == tk.TRUE:
+            for btn in self.watchlist:
+                btn["btn"].btn.deselect()
+        else:
+            for btn in self.watchlist:
+                btn["btn"].btn.select()
+
+    def _check_int(self, var, offset=0):
+        try:
+            var = int(var)
+        except Exception:
+            MyAlertWindow(self.window, "Page is not a number")
+            return None
+        return var + offset
+
+    def _enter_event(self, event):
+        self._update_page(self._check_int(self.entry_page.text.get()))
+        self.window.focus_set()
+
+    def close_and_update(self):
+        if not len(self.to_remove) and not len(self.to_ban):
+            self.window.destroy()
+            return
+        # self.to_remove = sorted(list(self.to_remove))
+        # self.to_ban = sorted(list(self.to_ban))
+        # print(self.to_remove)
+        # print(self.to_ban)
+        # if not len(self.to_remove):
+        #     self.to_remove.append(-1)
+        # if not len(self.to_ban):
+        #     self.to_ban.append(-1)
+        self.rfile.seek(0, 0)
+        self.findex = 1
+        # remindex = 0
+        # banindex = 0
+        try:
+            wfile = open(exec_path + "watchlist.temp", "w", encoding="utf-8")
+        except Exception:
+            MyAlertWindow(self.window, "Cannot update WatchList")
+            return
+        for line in self.rfile:
+            if self.findex in self.to_remove:
+                self.findex += 1
+                continue
+            if self.findex in self.to_ban:
+                player = MyWatchPlayer(line)
+                player.banned = "Y" if player.banned == "N" else "N"
+                line = player.ret_string()
+            wfile.write(line)
+            self.findex += 1
+        wfile.close()
+        self.rfile.close()
+        os.remove(exec_path + "watchlist")
+        os.rename(exec_path + "watchlist.temp", exec_path + "watchlist")
+        self.window.destroy()
+
+    def _check_stats(self):
+        nrplayers = 0
+        banned = 0
+        for line in self.rfile:
+            player = MyWatchPlayer(line)
+            nrplayers += 1
+            if player.banned == "Y":
+                banned += 1
+        self.rfile.seek(0, 0)
+        self._stats.update({"nrpl": nrplayers, "ban": banned})
+        if nrplayers % 10 == 0:
+            self._maxpages = int(nrplayers / 10)
+        else:
+            self._maxpages = int(nrplayers / 10) + 1
+
+    def __init__(self, root):
+        try:
+            self.rfile = open(exec_path + "watchlist", "r", encoding="utf-8")
+        except FileNotFoundError:
+            self.rfile = open(exec_path + "watchlist", "w", encoding="utf-8")
+            self.rfile.close()
+            self.rfile = open(exec_path + "watchlist", "r", encoding="utf-8")
+        self.findex = 1
+        self._lastpage = 2
+        self._maxpages = 0
+        self._stats = {}
+        self.watchlist = []
+        self.to_remove = set()
+        self.to_ban = set()
+        self.window = tk.Toplevel(root)
+        self.window.transient(root)
+        self.window.title("WatchList")
+        self.window.minsize(680, 400)
+        self.window.resizable(False, False)
+        sizex = self.window.minsize()[0]
+        self.window.config(bg="#101010")
+        self.window.protocol("WM_DELETE_WINDOW", self.close_and_update)
+        frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
+        label = MyLabelStyle(frame, " \\")
+        label.frame.config(font=("", 12, "bold"))
+        label.frame.grid(row=0, column=0, sticky=tk.W + tk.E)
+        label = MyLabelStyle(frame, "   ##")
+        label.frame.config(font=("", 12, "bold"))
+        label.frame.grid(row=0, column=1, sticky=tk.W + tk.E)
+        label = MyLabelStyle(frame, "NAME")
+        label.frame.config(font=("", 12, "bold"))
+        label.frame.grid(row=0, column=2, padx=5, sticky=tk.W + tk.E)
+        label = MyLabelStyle(frame, "KAD")
+        label.frame.config(font=("", 12, "bold"))
+        label.frame.grid(row=0, column=3, padx=5, sticky=tk.W + tk.E)
+        label = MyLabelStyle(frame, "MAP")
+        label.frame.config(font=("", 12, "bold"))
+        label.frame.grid(row=0, column=4, padx=5, sticky=tk.W + tk.E)
+        label = MyLabelStyle(frame, "DATE ADDED")
+        label.frame.config(font=("", 12, "bold"))
+        label.frame.grid(row=0, column=5, padx=5, sticky=tk.W + tk.E)
+        # frame.grid_columnconfigure(0, minsize=0.002 * sizex, weight=1)
+        # frame.grid_columnconfigure(1, minsize=0.002 * sizex, weight=1)
+        frame.grid_columnconfigure(2, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(3, minsize=0.15 * sizex, weight=1)
+        frame.grid_columnconfigure(4, minsize=0.1 * sizex, weight=1)
+        frame.grid_columnconfigure(5, minsize=0.2 * sizex, weight=1)
+        frame.grid_propagate(False)
+        frame.pack(fill=tk.X)
+        frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
+        label = MyLabelStyle(frame, "_" * 300)
+        label.frame.pack()
+        frame.pack_propagate(False)
+        frame.pack(fill=tk.X)
+        frame = tk.Frame(self.window, bg="#101010", width=sizex, height=300)
+
+        def lc_event1(event):
+            for item in self.watchlist:
+                if item["name"].frame == event.widget:
+                    link = item["player"].link if item["player"] is not None else None
+                    break
+            if link is None or len(link) == 0:
+                return
+            if browser_path is None:
+                web.open_new_tab(link)
+            else:
+                sp.Popen(browser_path + " " + link)
+
+        for i2 in range(1, 11):
+            check = MyCheckButtonStyle(frame)
+            check.btn.grid(row=i2 - 1, column=0)
+            numberr = MyLabelStyle(frame, "")
+            numberr.frame.config(anchor=tk.W)
+            numberr.frame.grid(row=i2 - 1, column=1, sticky=tk.W + tk.E)
+            name = MyLabelStyle(frame, "")
+            name.frame.grid(row=i2 - 1, column=2, padx=5, sticky=tk.W + tk.E)
+            name.frame.config(cursor="hand2")
+            name.frame.bind("<Button-1>", lc_event1)
+            kad = MyLabelStyle(frame, "")
+            kad.frame.grid(row=i2 - 1, column=3, padx=5, sticky=tk.W + tk.E)
+            mapp = MyLabelStyle(frame, "")
+            mapp.frame.grid(row=i2 - 1, column=4, padx=5, sticky=tk.W + tk.E)
+            if len(mapp.text.get()) > 20:
+                mapp.frame.config(anchor=tk.W)
+            date = MyLabelStyle(frame, "")
+            date.frame.grid(row=i2 - 1, column=5, padx=5, sticky=tk.W + tk.E)
+            self.watchlist.append(
+                {"btn": check, "nr": numberr, "name": name, "kad": kad, "map": mapp, "date": date,
+                 "player": None})
+        # self.sf.inner.grid_columnconfigure(0, minsize=0.05 * sizex, weight=1)
+        # self.sf.inner.grid_columnconfigure(1, minsize=0.05 * sizex, weight=1)
+        frame.grid_columnconfigure(2, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(3, minsize=0.15 * sizex, weight=1)
+        frame.grid_columnconfigure(4, minsize=0.1 * sizex, weight=1)
+        frame.grid_columnconfigure(5, minsize=0.2 * sizex, weight=1)
+        # self.sf.inner.grid_propagate(False)
+        # self.frame.update_idletasks()
+        frame.pack(fill=tk.BOTH)
+        # frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
+        # label = MyLabelStyle(frame, "_" * 300)
+        # label.frame.pack()
+        # frame.pack_propagate(False)
+        # frame.pack(fill=tk.X)
+        frame = tk.Frame(self.window, bg="#101010", width=sizex, height=15)
+        btn = MyButtonStyle(frame, "1 <<", lambda: self._update_page(1))
+        btn.btn.config(width=5)
+        btn.btn.pack(side=tk.LEFT, padx=5)
+        btn = MyButtonStyle(frame, "<", lambda: self._update_page(self._check_int(self.entry_page.text.get(), -1)))
+        btn.btn.config(width=5)
+        btn.btn.pack(side=tk.LEFT, padx=5)
+        self.entry_page = MyEntryStyle(frame, "0")
+        self.entry_page.frame.config(width=5, state=tk.NORMAL)
+        self.entry_page.frame.pack(side=tk.LEFT, padx=5)
+        self.entry_page.frame.bind("<Return>", self._enter_event)
+        btn = MyButtonStyle(frame, ">", lambda: self._update_page(self._check_int(self.entry_page.text.get(), 1)))
+        btn.btn.config(width=5)
+        btn.btn.pack(side=tk.LEFT, padx=5)
+        self.btn_lastpage = MyButtonStyle(frame, ">>", lambda: self._update_page(self._maxpages))
+        self.btn_lastpage.btn.config(width=5)
+        self.btn_lastpage.btn.pack(side=tk.LEFT, padx=5)
+        frame.pack()
+        frame = tk.Frame(self.window, bg="#101010", width=sizex, height=15)
+        btn = MyButtonStyle(frame, "(De) Select All", self._elect_btns)
+        btn.btn.grid(row=0, column=0, padx=5)
+        btn = MyButtonStyle(frame, "Remove selected", self._remove_pl)
+        btn.btn.grid(row=0, column=1, padx=5)
+        btn = MyButtonStyle(frame, "(Un) Mark Banned", self._mark_ban)
+        btn.btn.grid(row=0, column=2, padx=5)
+        btn = MyButtonStyle(frame, "Check VAC", lambda: check_vac(self))
+        btn.btn.grid(row=0, column=3, padx=5)
+        frame.pack(side=tk.LEFT)
+        self._check_stats()
+        frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
+        self.stats_players = MyLabelStyle(frame, "Total players: " + str(self._stats["nrpl"]))
+        self.stats_players.frame.config(font=("", 12, "bold"))
+        self.stats_players.frame.grid(row=0, column=0, sticky=tk.W)
+        self.stats_banned = MyLabelStyle(frame, "Banned players: " + str(self._stats["ban"]))
+        self.stats_banned.frame.config(font=("", 12, "bold"))
+        self.stats_banned.frame.grid(row=1, column=0, sticky=tk.W)
+        if self._stats["nrpl"] == 0:
+            percent = "--.--"
+        else:
+            percent = round(self._stats["ban"] / self._stats["nrpl"] * 100, 2)
+        self.percent = MyLabelStyle(frame, "Percent: " + str(percent) + " %")
+        self.percent.frame.config(font=("", 12, "bold"))
+        self.percent.frame.grid(row=2, column=0, sticky=tk.W)
+        self.btn_lastpage.text.set(">> " + str(self._maxpages))
+        frame.pack(side=tk.RIGHT)
+        self._update_page(self._maxpages)
+        self.window.pack_propagate(False)
+        self.window.update_idletasks()
+        self.window.geometry("+%d+%d" % (calc_window_pos(root, self.window)))
+        self.window.grab_set()
+        self.window.focus_set()
+
+
 class SettingsWindow:
     def _update_all_settings(self):
         self._update_buttons(self.btn_set1)
@@ -396,19 +845,13 @@ class SettingsWindow:
             self._change_setting(self.btn_set5)
         self._check_get_name(self.entry_demo)
 
-    def _change_setting(self, button, value=None):
+    def _change_setting(self, button):
         if button.btn.winfo_name() == "auto_dl" and not settings_dict["auto_dl"] and settings_dict["browser_dl"]:
             self._change_setting(self.btn_set2)
         elif button.btn.winfo_name() == "browser_dl" and not settings_dict["browser_dl"] and settings_dict["auto_dl"]:
             self._change_setting(self.btn_set5)
         elif button.btn.winfo_name() == "rename_dl":
             self._check_get_name(self.entry_demo)
-        # if value:
-        #     if bool(settings_dict[button.btn.winfo_name()]) is True:
-        #         settings_dict[button.btn.winfo_name()] = False
-        #     else:
-        #         settings_dict[button.btn.winfo_name()] = value
-        # else:
         settings_dict[button.btn.winfo_name()] = not settings_dict[button.btn.winfo_name()]
         self._update_buttons(button)
 
@@ -440,6 +883,7 @@ class SettingsWindow:
         thread_analyze = t.Thread(target=lambda: analyze_demo(path, app.btn3_download, app.btn3_download.text.get()),
                                   daemon=True)
         thread_analyze.start()
+        self._destroy_checkname()
 
     def _check_get_name(self, button):
         global settings_dict
@@ -469,6 +913,7 @@ class SettingsWindow:
 
     def __init__(self, root):
         self.window = tk.Toplevel(root)
+        self.window.transient(root)
         self.window.title("Settings")
         self.window.minsize(580, 330)
         sizex = self.window.minsize()[0]
@@ -534,7 +979,7 @@ class SettingsWindow:
                 web.open_new_tab(link)
             else:
                 sp.Popen(browser_path + " " + link)
-                
+
         self.label_github = MyLabelStyle(self.window, "https://github.com/ZaharX97/OWReveal")
         self.label_github.frame.config(cursor="hand2")
         self.label_github.frame.grid(row=8, column=1, padx=5, pady=5, columnspan=2)
@@ -577,32 +1022,21 @@ class MainAppWindow:
 
     def update_stats(self, stats=None):
         # self.btn6_round.update([])
+        self._reset_chekcs()
         if stats:
             # self.label_map.text.set(demo_stats["map"])
             indext = 0
             indexct = 0
-            if demo_nrplayers == 10:
-                if stats <= 15:
-                    self.label_scorect.text.set(demo_stats[stats].score_team3)
-                    self.label_scoret.text.set(demo_stats[stats].score_team2)
-                    indext = 6
-                    indexct = 1
-                else:
-                    self.label_scorect.text.set(demo_stats[stats].score_team2)
-                    self.label_scoret.text.set(demo_stats[stats].score_team3)
-                    indext = 1
-                    indexct = 6
-            elif demo_nrplayers == 4:
-                if stats <= 8:
-                    self.label_scorect.text.set(demo_stats[stats].score_team3)
-                    self.label_scoret.text.set(demo_stats[stats].score_team2)
-                    indext = 6
-                    indexct = 1
-                else:
-                    self.label_scorect.text.set(demo_stats[stats].score_team2)
-                    self.label_scoret.text.set(demo_stats[stats].score_team3)
-                    indext = 1
-                    indexct = 6
+            if (demo_nrplayers == 10 and stats <= 15) or (demo_nrplayers == 4 and stats <= 8):
+                self.label_scorect.text.set(demo_stats[stats].score_team3)
+                self.label_scoret.text.set(demo_stats[stats].score_team2)
+                indext = 6
+                indexct = 1
+            else:
+                self.label_scorect.text.set(demo_stats[stats].score_team2)
+                self.label_scoret.text.set(demo_stats[stats].score_team3)
+                indext = 1
+                indexct = 6
             if indext == 0:
                 MyAlertWindow(app.window, "error reading players, max= {}".format(demo_nrplayers))
                 return
@@ -634,12 +1068,14 @@ class MainAppWindow:
                             p].player.profile})
                     getattr(self, "label_scorep" + str(indexct)).text.set(kda)
                     indexct += 1
-            if indext == 3:
+            if demo_nrplayers == 4:
                 for p in range(3):
                     getattr(self, "label_player" + str(indext)).text.set("")
                     getattr(self, "label_scorep" + str(indext)).text.set("")
                     getattr(self, "label_player" + str(indexct)).text.set("")
                     getattr(self, "label_scorep" + str(indexct)).text.set("")
+                    getattr(self, "btn_rad" + str(indext)).btn.grid_remove()
+                    getattr(self, "btn_rad" + str(indexct)).btn.grid_remove()
                     indext += 1
                     indexct += 1
         else:
@@ -652,9 +1088,66 @@ class MainAppWindow:
                 profile_links.update({getattr(self, "label_player" + str(p)).frame: ""})
                 getattr(self, "label_player" + str(p)).text.set("???")
                 getattr(self, "label_scorep" + str(p)).text.set("0 / 0 / 0")
+                getattr(self, "btn_rad" + str(p)).btn.grid()
                 if p > 5:
                     getattr(self, "label_player" + str(p)).frame.config(anchor=tk.E)
         self.window.update_idletasks()
+
+    def _reset_chekcs(self):
+        for i2 in range(10):
+            getattr(self, "btn_rad" + str(i2 + 1)).btn.deselect()
+
+    def _addto_watchlist(self):
+        if thread_check_vac.is_alive():
+            MyAlertWindow(self.window, "VAC checking in progress, please wait!\n1 player / sec")
+            return
+        for i2 in range(1, 11):
+            if getattr(self, "btn_rad" + str(i2)).value.get() == tk.TRUE:
+                name = getattr(self, "label_player" + str(i2)).text.get()
+                link = profile_links[getattr(self, "label_player" + str(i2)).frame]
+                if link == "":
+                    return
+                try:
+                    exist = False
+                    wfile = open(exec_path + "watchlist", "r", encoding="utf-8")
+                    for line in wfile:
+                        player = MyWatchPlayer(line)
+                        if player.link == link:
+                            exist = True
+                            wfile.close()
+                            break
+                    if exist:
+                        continue
+                except Exception:
+                    # the file probably doesnt exist
+                    pass
+                dtt = dt.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
+                for player in demo_stats[len(demo_stats) - 1].pscore:
+                    if player.player.profile == link:
+                        kad = "{} / {} / {}".format(player.k, player.a, player.d)
+                map = demo_stats["otherdata"]["map"]
+                if demo_nrplayers == 4:
+                    map += "_2v2"
+                link = link[link.rfind("/") + 1:]
+                # total = len(name) + len(link) + len(map) + len(kad) + len(dtt) + 6  # 5 spaces + banned
+                try:
+                    wfile = open(exec_path + "watchlist", "a", encoding="utf-8")
+                    # wfile.write("{}={} ".format(len(str(total)), total))
+                    wfile.write("{} {} {} {}={} ".format(link, "N", dtt, len(name), name))
+                    wfile.write("{}={} {}={}\n".format(len(kad), kad, len(map), map))
+                except Exception:
+                    MyAlertWindow(self.window, "Error3 opening WatchList")
+                    return
+        try:
+            wfile.close()
+        except Exception:
+            pass
+
+    def _open_watchlist(self):
+        if thread_check_vac.is_alive():
+            MyAlertWindow(self.window, "VAC checking in progress, please wait!\n1 player / sec")
+            return
+        WatchListWindow(self.window)
 
     def __init__(self, title, sizex, sizey):
         self.window = tk.Tk()
@@ -679,9 +1172,8 @@ class MainAppWindow:
         self.entry1_url = MyEntryStyle(self.window, "")
         self.entry1_url.frame.grid(row=2, column=0, sticky=tk.W + tk.E, columnspan=9, ipady=3, padx=5, pady=2)
         self.menu1_entry1_copy = MyMenuStyle(self.window)
-        self.menu1_entry1_copy.menu.add_command(label="Copy",
-                                                command=lambda: copy_to_clipboard(self.entry1_url.frame,
-                                                                                  self.entry1_url.text.get()))
+        self.menu1_entry1_copy.menu.add_command(label="Copy", command=lambda: copy_to_clipboard(
+            self.entry1_url.frame, "http://" + self.entry1_url.text.get()))
 
         def rc_event1(event):
             self.menu1_entry1_copy.menu.post(event.x_root, event.y_root)
@@ -707,8 +1199,11 @@ class MainAppWindow:
         self.btn6_round = MyOptMenuStyle(self.window, "Select a round", [])
         self.btn6_round.btn.grid(row=4, column=7, sticky=tk.W + tk.E, columnspan=2, pady=5, padx=5)
 
-        # self.btn7_add_wl = MyButtonStyle(self.window, "Add to Watchlist", placeholder)
-        # self.btn7_add_wl.btn.grid(row=7, column=7, sticky=tk.W + tk.E, padx=5)
+        self.btn7_add_wl = MyButtonStyle(self.window, "Add to Watchlist", self._addto_watchlist)
+        self.btn7_add_wl.btn.grid(row=6, column=7, columnspan=2, sticky=tk.W + tk.E, padx=5)
+
+        self.btn8_watchlist = MyButtonStyle(self.window, "WatchList", self._open_watchlist)
+        self.btn8_watchlist.btn.grid(row=7, column=7, columnspan=2, sticky=tk.W + tk.E, padx=5)
 
         self.label_teamct = MyLabelStyle(self.window, "CT")
         self.label_teamct.frame.config(font=("", 16, "bold"), fg="#00bfff")
@@ -757,6 +1252,28 @@ class MainAppWindow:
                 web.open_new_tab(link)
             else:
                 sp.Popen(browser_path + " " + link)
+
+        self.btn_rad1 = MyCheckButtonStyle(self.window)
+        self.btn_rad1.btn.grid(row=5, column=0, padx=5)
+        self.btn_rad2 = MyCheckButtonStyle(self.window)
+        self.btn_rad2.btn.grid(row=6, column=0, padx=5)
+        self.btn_rad3 = MyCheckButtonStyle(self.window)
+        self.btn_rad3.btn.grid(row=7, column=0, padx=5)
+        self.btn_rad4 = MyCheckButtonStyle(self.window)
+        self.btn_rad4.btn.grid(row=8, column=0, padx=5)
+        self.btn_rad5 = MyCheckButtonStyle(self.window)
+        self.btn_rad5.btn.grid(row=9, column=0, padx=5)
+        self.btn_rad6 = MyCheckButtonStyle(self.window)
+        self.btn_rad6.btn.grid(row=5, column=6, padx=5)
+        self.btn_rad7 = MyCheckButtonStyle(self.window)
+        self.btn_rad7.btn.grid(row=6, column=6, padx=5)
+        self.btn_rad8 = MyCheckButtonStyle(self.window)
+        self.btn_rad8.btn.grid(row=7, column=6, padx=5)
+        self.btn_rad9 = MyCheckButtonStyle(self.window)
+        self.btn_rad9.btn.grid(row=8, column=6, padx=5)
+        self.btn_rad10 = MyCheckButtonStyle(self.window)
+        self.btn_rad10.btn.grid(row=9, column=6, padx=5)
+        self._reset_chekcs()
 
         self.label_scorep1 = MyLabelStyle(self.window, "0 / 0 / 0")
         self.label_scorep1.frame.grid(row=5, column=2, sticky=tk.W, padx=5)

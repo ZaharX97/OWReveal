@@ -65,7 +65,7 @@ def print_players_userinfo(file, data):
 def print_match_stats(file, data):
     file.write("\nMATCH STATS:\n")
     for x in data.items():
-        if x[0] in ("nrplayers", "map"):
+        if x[0] == "otherdata":
             continue
         file.write("\nRound {}:\n".format(x[0]))
         file.write("team2= {} / team3= {}\n\n".format(x[1].score_team2, x[1].score_team3))
