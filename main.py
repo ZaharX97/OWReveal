@@ -169,7 +169,6 @@ def download_from_link(link, button):
     size_total = int(r.headers["Content-Length"])
     size_total_mb = str(int(size_total / (1 << 20))) + "MB"
     size_curr = 0
-    btn_name = button.text.get()
     if settings_dict["rename_dl"] is False:
         name = list_links[-1][list_links[-1].rfind("/") + 1:]
     else:
@@ -186,7 +185,7 @@ def download_from_link(link, button):
         dest1 = open(settings_dict["dl_loc"] + name, "wb")
     except Exception:
         MyAlertWindow(app.window, "Error downloading file")
-        button.text.set(btn_name)
+        button.text.set("Download DEMO")
         return
     with dest1 as dest:
         for chunk in r.iter_content(chunk_size=chunk_size):
@@ -201,24 +200,26 @@ def download_from_link(link, button):
         dest1 = open(settings_dict["dl_loc"] + name, "wb")
     except Exception:
         MyAlertWindow(app.window, "Error extracting file")
-        button.text.set(btn_name)
+        button.text.set("Download DEMO")
         return
     with file1 as file, dest1 as dest:
         shutil.copyfileobj(file, dest, chunk_size)
     os.remove(settings_dict["dl_loc"] + name + ".bz2")
-    try:
-        analyze_demo(settings_dict["dl_loc"] + name, button, btn_name)
-    except:
-        MyAlertWindow(app.window, "Error parsing demo")
+    analyze_demo(settings_dict["dl_loc"] + name, button)
     if settings_dict["delete_after"] is True:
         os.remove(settings_dict["dl_loc"] + name)
 
 
-def analyze_demo(path, button, btn_name):
+def analyze_demo(path, button):
     global demo_stats, demo_nrplayers
     button.text.set("analyzing...")
     demo_stats = DemoParser(path)
-    demo_stats = demo_stats.parse()
+    try:
+        demo_stats = demo_stats.parse()
+    except Exception:
+        MyAlertWindow(app.window, "Error parsing demo")
+        button.text.set("Download DEMO")
+        return
     demo_nrplayers = demo_stats["otherdata"]["nrplayers"]
     rounds_list = [None] * (len(demo_stats) - 1)
     for i2 in range(1, len(demo_stats)):
@@ -226,7 +227,7 @@ def analyze_demo(path, button, btn_name):
     app.btn6_round.update(rounds_list, cmd=app.update_stats)
     # app.btn6_round.text.set("Round " + str(len(demo_stats) - 2))
     app.update_stats(len(demo_stats) - 1)
-    button.text.set(btn_name)
+    button.text.set("Download DEMO")
 
 
 def open_link(link, button):
@@ -354,7 +355,7 @@ class MyWatchPlayer:
         ret += "{} {} {} ".format(self.link[self.link.rfind("/") + 1:], self.banned,
                                   self.dtt.strftime("%d-%b-%Y %H:%M:%S"))
         ret += "{}={} ".format(len(self.name), self.name)
-        ret += "{}={} {}={}\n".format(len(self.kad), self.kad, len(self.map), self.map)
+        ret += "{}={} {}={} {}\n".format(len(self.kad), self.kad, len(self.map), self.map, self.comm)
         return ret
 
     def __init__(self, data=None):
@@ -363,6 +364,7 @@ class MyWatchPlayer:
             self.link = None
             self.datetime = None
             self.date = None
+            self.comm = None
         else:
             self.data = data
             # length = self.data[:self.data.find("=")]
@@ -385,6 +387,10 @@ class MyWatchPlayer:
             length = self.data[:self.data.find("=")]
             self._read(1 + len(length))
             self.map = self._read(int(length), string=False)
+            if self.data == "\n":
+                self.comm = ""
+            else:
+                self.comm = self.data[1:-1]
             del self.data
             del length
 
@@ -559,6 +565,8 @@ class WatchListWindow:
     def _update_page(self, page):
         if page is None or page < 1 or page == self._lastpage or page > self._maxpages:
             return
+        if self._lastpage != 0:
+            self._check_comm()
         if page < self._lastpage:
             self.rfile.seek(0, 0)
             self.findex = 1
@@ -580,6 +588,10 @@ class WatchListWindow:
             self.watchlist[i2]["nr"].text.set(str(self.findex) + ".")
             self.watchlist[i2]["name"].text.set(player.name if player else "TO REMOVE")
             if player:
+                if len(player.name) > 25:
+                    self.watchlist[i2]["name"].frame.config(anchor=tk.W)
+                else:
+                    self.watchlist[i2]["name"].frame.config(anchor=tk.CENTER)
                 if self.findex in self.to_ban:
                     if player.banned == "Y":
                         self.watchlist[i2]["name"].frame.config(bg="#101010")
@@ -592,7 +604,14 @@ class WatchListWindow:
                         self.watchlist[i2]["name"].frame.config(bg="#101010")
             self.watchlist[i2]["kad"].text.set(player.kad if player else "TO REMOVE")
             self.watchlist[i2]["map"].text.set(player.map if player else "TO REMOVE")
+            if len(self.watchlist[i2]["map"].text.get()) > 13:
+                self.watchlist[i2]["map"].frame.config(anchor=tk.W)
+            else:
+                self.watchlist[i2]["map"].frame.config(anchor=tk.CENTER)
             self.watchlist[i2]["date"].text.set(player.date if player else "TO REMOVE")
+            self.watchlist[i2]["comm"].frame.grid()
+            self.watchlist[i2]["comm"].text.set(
+                self.comm_dict[self.findex] if self.comm_dict.get(self.findex) else player.comm)
             self.findex += 1
         i2 = (self.findex - 1) % 10
         if i2 != 0:
@@ -600,9 +619,11 @@ class WatchListWindow:
                 self.watchlist[i2]["btn"].btn.grid_remove()
                 self.watchlist[i2]["nr"].text.set("")
                 self.watchlist[i2]["name"].text.set("")
+                self.watchlist[i2]["name"].frame.config(bg="#101010")
                 self.watchlist[i2]["kad"].text.set("")
                 self.watchlist[i2]["map"].text.set("")
                 self.watchlist[i2]["date"].text.set("")
+                self.watchlist[i2]["comm"].frame.grid_remove()
                 self.watchlist[i2]["player"] = None
                 i2 += 1
 
@@ -629,21 +650,12 @@ class WatchListWindow:
         self.window.focus_set()
 
     def close_and_update(self):
-        if not len(self.to_remove) and not len(self.to_ban):
+        self._check_comm()
+        if not len(self.to_remove) and not len(self.to_ban) and not len(self.to_comm):
             self.window.destroy()
             return
-        # self.to_remove = sorted(list(self.to_remove))
-        # self.to_ban = sorted(list(self.to_ban))
-        # print(self.to_remove)
-        # print(self.to_ban)
-        # if not len(self.to_remove):
-        #     self.to_remove.append(-1)
-        # if not len(self.to_ban):
-        #     self.to_ban.append(-1)
         self.rfile.seek(0, 0)
         self.findex = 1
-        # remindex = 0
-        # banindex = 0
         try:
             wfile = open(exec_path + "watchlist.temp", "w", encoding="utf-8")
         except Exception:
@@ -653,9 +665,15 @@ class WatchListWindow:
             if self.findex in self.to_remove:
                 self.findex += 1
                 continue
-            if self.findex in self.to_ban:
+            to_change = False
+            if self.findex in self.to_ban or self.findex in self.to_comm:
                 player = MyWatchPlayer(line)
+                to_change = True
+            if self.findex in self.to_ban:
                 player.banned = "Y" if player.banned == "N" else "N"
+            if self.findex in self.to_comm:
+                player.comm = self.comm_dict[self.findex]
+            if to_change:
                 line = player.ret_string()
             wfile.write(line)
             self.findex += 1
@@ -680,6 +698,16 @@ class WatchListWindow:
         else:
             self._maxpages = int(nrplayers / 10) + 1
 
+    def _check_comm(self):
+        for i2 in range(10):
+            player = self.watchlist[i2]["player"]
+            if player and self.watchlist[i2]["comm"].text.get() != player.comm:
+                val = self.watchlist[i2]["nr"].text.get()[:self.watchlist[i2]["nr"].text.get().find(".")]
+                val = int(val)
+                if val not in self.to_comm:
+                    self.to_comm.add(val)
+                self.comm_dict.update({val: self.watchlist[i2]["comm"].text.get()})
+
     def __init__(self, root):
         try:
             self.rfile = open(exec_path + "watchlist", "r", encoding="utf-8")
@@ -688,17 +716,19 @@ class WatchListWindow:
             self.rfile.close()
             self.rfile = open(exec_path + "watchlist", "r", encoding="utf-8")
         self.findex = 1
-        self._lastpage = 2
+        self._lastpage = 0
         self._maxpages = 0
         self._stats = {}
         self.watchlist = []
         self.to_remove = set()
         self.to_ban = set()
+        self.to_comm = set()
+        self.comm_dict = {}
         self.window = tk.Toplevel(root)
         self.window.transient(root)
         self.window.title("WatchList")
-        self.window.minsize(680, 400)
-        self.window.resizable(False, False)
+        self.window.minsize(720, 410)
+        # self.window.resizable(False, False)
         sizex = self.window.minsize()[0]
         self.window.config(bg="#101010")
         self.window.protocol("WM_DELETE_WINDOW", self.close_and_update)
@@ -721,12 +751,16 @@ class WatchListWindow:
         label = MyLabelStyle(frame, "DATE ADDED")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=5, padx=5, sticky=tk.W + tk.E)
+        label = MyLabelStyle(frame, "COMMENTS")
+        label.frame.config(font=("", 12, "bold"))
+        label.frame.grid(row=0, column=6, padx=5, sticky=tk.W + tk.E)
         # frame.grid_columnconfigure(0, minsize=0.002 * sizex, weight=1)
         # frame.grid_columnconfigure(1, minsize=0.002 * sizex, weight=1)
-        frame.grid_columnconfigure(2, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(2, minsize=0.27 * sizex, weight=1)
         frame.grid_columnconfigure(3, minsize=0.15 * sizex, weight=1)
-        frame.grid_columnconfigure(4, minsize=0.1 * sizex, weight=1)
-        frame.grid_columnconfigure(5, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(4, minsize=0.15 * sizex, weight=1)
+        frame.grid_columnconfigure(5, minsize=0.15 * sizex, weight=1)
+        frame.grid_columnconfigure(6, minsize=0.2 * sizex, weight=1)
         frame.grid_propagate(False)
         frame.pack(fill=tk.X)
         frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
@@ -762,19 +796,21 @@ class WatchListWindow:
             kad.frame.grid(row=i2 - 1, column=3, padx=5, sticky=tk.W + tk.E)
             mapp = MyLabelStyle(frame, "")
             mapp.frame.grid(row=i2 - 1, column=4, padx=5, sticky=tk.W + tk.E)
-            if len(mapp.text.get()) > 20:
-                mapp.frame.config(anchor=tk.W)
             date = MyLabelStyle(frame, "")
             date.frame.grid(row=i2 - 1, column=5, padx=5, sticky=tk.W + tk.E)
+            comm = MyEntryStyle(frame, "")
+            comm.frame.config(state=tk.NORMAL, bg="#101010", fg="white", insertbackground="white")
+            comm.frame.grid(row=i2 - 1, column=6, padx=5, pady=2, sticky=tk.W + tk.E)
             self.watchlist.append(
                 {"btn": check, "nr": numberr, "name": name, "kad": kad, "map": mapp, "date": date,
-                 "player": None})
+                 "comm": comm, "player": None})
         # self.sf.inner.grid_columnconfigure(0, minsize=0.05 * sizex, weight=1)
         # self.sf.inner.grid_columnconfigure(1, minsize=0.05 * sizex, weight=1)
-        frame.grid_columnconfigure(2, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(2, minsize=0.27 * sizex, weight=1)
         frame.grid_columnconfigure(3, minsize=0.15 * sizex, weight=1)
-        frame.grid_columnconfigure(4, minsize=0.1 * sizex, weight=1)
-        frame.grid_columnconfigure(5, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(4, minsize=0.15 * sizex, weight=1)
+        frame.grid_columnconfigure(5, minsize=0.15 * sizex, weight=1)
+        frame.grid_columnconfigure(6, minsize=0.2 * sizex, weight=1)
         # self.sf.inner.grid_propagate(False)
         # self.frame.update_idletasks()
         frame.pack(fill=tk.BOTH)
@@ -883,8 +919,7 @@ class SettingsWindow:
             MyAlertWindow(app.window, "A demo is already being analyzed, please wait!")
             return
         app.update_stats()
-        thread_analyze = t.Thread(target=lambda: analyze_demo(path, app.btn3_download, app.btn3_download.text.get()),
-                                  daemon=True)
+        thread_analyze = t.Thread(target=lambda: analyze_demo(path, app.btn3_download), daemon=True)
         thread_analyze.start()
         self._destroy_checkname()
 
@@ -1128,6 +1163,7 @@ class MainAppWindow:
                 for player in demo_stats[len(demo_stats) - 1].pscore:
                     if player.player.profile == link:
                         kad = "{} / {} / {}".format(player.k, player.a, player.d)
+                        break
                 map = demo_stats["otherdata"]["map"]
                 if demo_nrplayers == 4:
                     map += "_2v2"
