@@ -5,6 +5,10 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Versions:
 
+* v**3.1** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1)  
+  * Added a comment box in WatchList
+  * fixed some bugs
+
 * v**3.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.0)
   * Added a watchlist to track suspect players
   
