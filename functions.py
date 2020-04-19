@@ -249,10 +249,10 @@ def calc_window_pos(x, y):
 
 
 def check_vac(window):
-    # global thread_check_vac
+    # global g.thread_check_vac
     window.close_and_update()
-    thread_check_vac = t.Thread(target=actual_check_vac, daemon=True)
-    thread_check_vac.start()
+    g.thread_check_vac = t.Thread(target=actual_check_vac, daemon=True)
+    g.thread_check_vac.start()
     AW.MyAlertWindow(g.app.window, "Started checking for new VAC bans\n1 player / sec")
 
 
