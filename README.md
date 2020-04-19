@@ -5,6 +5,9 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Versions:
 
+* v**3.1.1** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.1)  
+  * nothing new (project restructured and created a new exe file)
+
 * v**3.1** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1)  
   * Added a comment box in WatchList
   * fixed some bugs
@@ -44,6 +47,12 @@ CSGO Overwatch revealer by sniffing packets
 **Q**: How do I find The Suspect's profile with this?  
 **A**: Check who has the same score as The Suspect and click his name  
 
+**Q**: What is with the _console_ version of the .exe?  
+**A**: The one with _console_ opens a cmd along and prints errors or whatever print statements I forgot to remove  
+
 **Q**: Not a question, but k/d/a in your app is wrong  
 **A**: Could be, in my app it's displayed as k/a/d and I'm not sure I covered all edge cases  
 Also when you select a round, it shows the stats from the end of that round.
+
+**Q**: What python version was this written for?  
+**A**: I wrote this using python 3.8.1  
