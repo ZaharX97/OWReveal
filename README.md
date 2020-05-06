@@ -1,9 +1,14 @@
 # OWReveal
 CSGO Overwatch revealer by sniffing packets
 
-![Main window](https://i.imgur.com/zyEJq0V.png) ![Settings](https://i.imgur.com/ACZiZkm.jpg)
+![Main window](https://i.imgur.com/zyEJq0V.png) ![WatchList](https://i.imgur.com/MHWbTOE.jpg)
 
-## Versions:
+## Versions:  
+  
+* v**3.1.3** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.3)  
+  * updated demo parser  
+  * fixed team scores in wingman
+  * other small fixes
 
 * v**3.1.2** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.2)  
   * project restructured (multiple smaller files instead of one huge file)  
