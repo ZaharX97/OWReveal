@@ -18,7 +18,7 @@ def print_event_list(file, my_list):
     for item in my_list.items():
         file.write("\n  > {}, {} <\n    ....".format(item[0], item[1].name))
         for item2 in item[1].keys:
-            file.write(" {}, {} /".format(item2.name, item2.type))
+            file.write(" {} /".format(item2.name))
     file.write("\n")
 
 
@@ -39,7 +39,7 @@ def print_userinfo(file, data):
         if x.name == "userinfo":
             data = x.data
             break
-    file.write("\nUSERINFO:\n")
+    file.write("\nUSERINFO FROM TABLE:\n")
     file.write("    version / xuid / name / uid / guid / fid / fname / fakepl / isHLTV / custom / files / eid / tbd\n")
     for item in data:
         x = item["user_data"]
@@ -54,7 +54,7 @@ def print_players_userinfo(file, data):
     file.write("\nUSERINFO:\n")
     file.write("    version / xuid / name / uid / guid / fid / fname / fakepl / isHLTV / custom / files / eid / tbd\n")
     for p in data.items():
-        x = p[1].userinfo
+        x = p[1]
         if x:
             file.write("{}:   {} / {} / {} / {} / ".format(p[0], x.version, x.xuid, x.name, x.user_id))
             file.write("{} / {} / {} / {} / ".format(x.guid, x.friends_id, x.friends_name, x.fake_player))
@@ -76,3 +76,16 @@ def print_match_stats(file, data):
                                                                        x[1].pscore[i].player.start_team,
                                                                        x[1].pscore[i].player.userinfo.xuid))
         file.write("...............................................................\n")
+
+
+def print_entities(file, data):
+    file.write("\nENTITIES:\n")
+    for x in data.items():
+        if x[1] is None or x[1].parse is False:
+            continue
+        file.write("\n\nENTITY #{}: {} //".format(x[0], x[1].class_name))
+        for x2 in x[1].props.items():
+            file.write("\n....{} //\n........".format(x2[0]))
+            for x3 in x2[1].items():
+                file.write("{} = {} // ".format(x3[0], x3[1]))
+    file.write("\n")

@@ -52,7 +52,9 @@ PT_String = 4
 PT_Array = 5
 PT_DataTable = 6
 PT_Int64 = 7
+
 DT_MAX_STRING_BITS = 9
+DT_MAX_STRING_BUFFERSIZE = (1 << DT_MAX_STRING_BITS)
 
 
 # class PropFlags:

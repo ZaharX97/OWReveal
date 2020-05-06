@@ -1,5 +1,7 @@
 import math
 
+import csgo_demoparser.consts as c
+
 
 class Bitbuffer:
     # ---------------------------------------------------------
@@ -64,10 +66,13 @@ class Bitbuffer:
         ret = self.read_uint_bits(6)
         if ret & 48 == 16:
             ret = (ret & 15) | (self.read_uint_bits(4) << 4)
+            assert ret >= 16
         elif ret & 48 == 32:
             ret = (ret & 15) | (self.read_uint_bits(8) << 4)
+            assert ret >= 256
         elif ret & 48 == 48:
             ret = (ret & 15) | (self.read_uint_bits(28) << 4)
+            assert ret >= 4096
         return ret
 
     def read_var_int(self):
@@ -158,3 +163,240 @@ class Bitbuffer:
         else:
             self.dataPart >>= 1
         return aBit
+
+    def read_index(self, last, new_way):
+        ret = 0
+        val = 0
+        if new_way and self.read_bit():
+            return last + 1
+        if new_way and self.read_bit():
+            ret = self.read_uint_bits(3)
+        else:
+            ret = self.read_uint_bits(7)
+            val = ret & (32 | 64)
+            if val == 32:
+                ret = (ret & ~96) | (self.read_uint_bits(2) << 5)
+                assert ret >= 32
+            elif val == 64:
+                ret = (ret & ~96) | (self.read_uint_bits(4) << 5)
+                assert ret >= 128
+            elif val == 96:
+                ret = (ret & ~96) | (self.read_uint_bits(7) << 5)
+                assert ret >= 512
+        if ret == 0xfff:
+            return -1
+        return last + 1 + ret
+
+    def decode(self, prop):
+        type2 = prop["prop"].type
+        assert type2 != c.PT_DataTable
+        if type2 == c.PT_Int:
+            ret = self._decode_int(prop["prop"])
+        elif type2 == c.PT_Float:
+            ret = self._decode_float(prop["prop"])
+        elif type2 == c.PT_Vector:
+            ret = self._decode_vector(prop["prop"])
+        elif type2 == c.PT_VectorXY:
+            ret = self._decode_vector_xy(prop["prop"])
+        elif type2 == c.PT_String:
+            ret = self._decode_string()
+        elif type2 == c.PT_Int64:
+            ret = self._decode_int64(prop["prop"])
+        elif type2 == c.PT_Array:
+            ret = self._decode_array(prop)
+        else:
+            raise Exception("Unsupported prop type")
+        return ret
+
+    def _decode_int(self, prop):
+        if prop.flags & c.SPROP_VARINT:
+            if prop.flags & c.SPROP_UNSIGNED:
+                ret = self.read_var_int()
+            else:
+                ret = self.read_var_int()
+                ret = ((ret >> 1) ^ (-(ret & 1)))
+        else:
+            if prop.flags & c.SPROP_UNSIGNED:
+                if prop.num_bits == 1:
+                    ret = self.read_bit()
+                else:
+                    ret = self.read_uint_bits(prop.num_bits)
+            else:
+                ret = self.read_sint_bits(prop.num_bits)
+        return ret
+
+    def _decode_float(self, prop):
+        val = self._decode_special_float(prop)
+        # print("....float val >", val)
+        if val is not None:
+            return val
+        interp = self.read_uint_bits(prop.num_bits)
+        val = interp / ((1 << prop.num_bits) - 1)
+        val = prop.low_value + (prop.high_value - prop.low_value) * val
+        return val
+
+    def _decode_special_float(self, prop):
+        val = None
+        flags2 = prop.flags
+        if flags2 & c.SPROP_COORD:
+            val = self._read_bit_coord()
+        elif flags2 & c.SPROP_COORD_MP:
+            val = self._read_bit_coord_mp(c.CW_None)
+        elif flags2 & c.SPROP_COORD_MP_LOWPRECISION:
+            val = self._read_bit_coord_mp(c.CW_LowPrecision)
+        elif flags2 & c.SPROP_COORD_MP_INTEGRAL:
+            val = self._read_bit_coord_mp(c.CW_Integral)
+        elif flags2 & c.SPROP_NOSCALE:
+            val = self.read_uint_bits(32)  # m_fAccuracyPenalty 1003621115
+        elif flags2 & c.SPROP_NORMAL:
+            val = self._read_bit_normal()
+        elif flags2 & c.SPROP_CELL_COORD:
+            val = self._read_bit_cell_coord(prop.num_bits, c.CW_None)
+        elif flags2 & c.SPROP_CELL_COORD_LOWPRECISION:
+            val = self._read_bit_cell_coord(prop.num_bits, c.CW_LowPrecision)
+        elif flags2 & c.SPROP_CELL_COORD_INTEGRAL:
+            val = self._read_bit_cell_coord(prop.num_bits, c.CW_Integral)
+        return val
+
+    def _read_bit_coord(self):
+        int_val = 0
+        frac_val = 0
+        i2 = self.read_bit()
+        f2 = self.read_bit()
+        if not i2 and not f2:
+            return 0
+        sign = self.read_bit()
+        if i2:
+            int_val = self.read_uint_bits(c.COORD_INTEGER_BITS) + 1
+        if f2:
+            frac_val = self.read_uint_bits(c.COORD_FRACTIONAL_BITS)
+        ret = int_val + (frac_val * c.COORD_RESOLUTION)
+        return -ret if sign else ret
+
+    def _read_bit_coord_mp(self, coord_type):
+        ret = 0
+        sign = False
+        integral = (coord_type == c.CW_Integral)
+        low_prec = (coord_type == c.CW_LowPrecision)
+        if self.read_bit():
+            in_bounds = True
+        else:
+            in_bounds = False
+        if integral:
+            int_val = self.read_bit()
+            if int_val:
+                sign = self.read_bit()
+                if in_bounds:
+                    ret = self.read_uint_bits(c.COORD_INTEGER_BITS_MP) + 1
+                else:
+                    ret = self.read_uint_bits(c.COORD_INTEGER_BITS) + 1
+        else:
+            int_val = self.read_bit()
+            sign = self.read_bit()
+            if int_val:
+                if in_bounds:
+                    int_val = self.read_uint_bits(c.COORD_INTEGER_BITS_MP) + 1
+                else:
+                    int_val = self.read_uint_bits(c.COORD_INTEGER_BITS) + 1
+            if low_prec:
+                frac_val = self.read_uint_bits(c.COORD_FRACTIONAL_BITS_MP_LOWPRECISION)
+                ret = int_val + frac_val * c.COORD_RESOLUTION_LOWPRECISION
+            else:
+                frac_val = self.read_uint_bits(c.COORD_FRACTIONAL_BITS)
+                ret = int_val + frac_val * c.COORD_RESOLUTION
+        if sign:
+            ret = -ret
+        return ret
+
+    def _read_bit_normal(self):
+        sign = self.read_bit()
+        frac = self.read_uint_bits(c.NORMAL_FRACTIONAL_BITS)
+        ret = frac * c.NORMAL_RESOLUTION
+        return -ret if sign else ret
+
+    def _read_bit_cell_coord(self, bits, coord_type):
+        low_prec = (coord_type == c.CW_LowPrecision)
+        if coord_type == c.CW_Integral:
+            ret = self.read_uint_bits(bits)
+        else:
+            if coord_type == c.COORD_FRACTIONAL_BITS_MP_LOWPRECISION:
+                frac_bits = low_prec
+            else:
+                frac_bits = c.COORD_FRACTIONAL_BITS
+            if low_prec:
+                resolution = c.COORD_RESOLUTION_LOWPRECISION
+            else:
+                resolution = c.COORD_RESOLUTION
+            int_val = self.read_uint_bits(bits)
+            frac_val = self.read_uint_bits(frac_bits)
+            ret = int_val + (frac_val * resolution)
+        return ret
+
+    def _decode_vector(self, prop):
+        x = self._decode_float(prop)
+        y = self._decode_float(prop)
+        if prop.flags & c.SPROP_NORMAL == 0:
+            z = self._decode_float(prop)
+        else:
+            sign = self.read_bit()
+            sum2 = (x * x) + (y * y)
+            if sum2 < 1:
+                z = math.sqrt(1 - sum2)
+            else:
+                z = 0
+            if sign:
+                z = -z
+        return {
+            "x": x,
+            "y": y,
+            "z": z
+        }
+
+    def _decode_vector_xy(self, prop):
+        x = self._decode_float(prop)
+        y = self._decode_float(prop)
+        return {
+            "x": x,
+            "y": y,
+            "z": 0
+        }
+
+    def _decode_string(self):
+        length = self.read_uint_bits(c.DT_MAX_STRING_BITS)
+        if not length:
+            return ""
+        if length >= c.DT_MAX_STRING_BUFFERSIZE:
+            length = c.DT_MAX_STRING_BUFFERSIZE - 1
+        ret = self.read_string(length)
+        return ret
+
+    def _decode_array(self, prop):
+        bits = int(math.floor(math.log2(prop["prop"].num_elements))) + 1
+        num_elements = self.read_uint_bits(bits)
+        elements = list()
+        for id2 in range(num_elements):
+            real_prop = {"prop": prop["arr"]}
+            val = self.decode(real_prop)
+            elements.append(val)
+        return elements
+
+    def _decode_int64(self, prop):
+        sign = False
+        if prop.flags & c.SPROP_VARINT:
+            if prop.flags & c.SPROP_UNSIGNED:
+                ret = self.read_var_int()
+            else:
+                ret = self.read_var_int()
+                ret = ((ret >> 1) ^ (-(ret & 1)))
+        else:
+            if prop.flags & c.SPROP_UNSIGNED:
+                low = self.read_uint_bits(32)
+                high = self.read_uint_bits(prop.num_bits - 32)
+            else:
+                sign = self.read_bit()
+                low = self.read_uint_bits(32)
+                high = self.read_uint_bits(prop.num_bits - 32 - 1)
+            ret = (high << 32) | low
+            if sign:
+                ret = -ret
+        return ret
