@@ -66,7 +66,7 @@ class MainAppWindow:
                                             g.demo_stats[stats].pscore[p].d)
                 if g.demo_stats[stats].pscore[p].player.start_team == 2:
                     if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
-                        if len(pname) > 20:
+                        if len(pname) >= 19:
                             getattr(self, "label_player" + str(indext)).frame.config(anchor=tk.W)
                         else:
                             getattr(self, "label_player" + str(indext)).frame.config(anchor=tk.E)
@@ -78,7 +78,7 @@ class MainAppWindow:
                     indext += 1
                 elif g.demo_stats[stats].pscore[p].player.start_team == 3:
                     if (g.demo_nrplayers == 10 and stats > 15) or (g.demo_nrplayers == 4 and stats > 8):
-                        if len(pname) > 20:
+                        if len(pname) >= 19:
                             getattr(self, "label_player" + str(indexct)).frame.config(anchor=tk.W)
                         else:
                             getattr(self, "label_player" + str(indexct)).frame.config(anchor=tk.E)
