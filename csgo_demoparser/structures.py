@@ -1,4 +1,6 @@
 import struct
+import copy
+
 import csgo_demoparser.consts as c
 from csgo_demoparser.ByteReader import Bytebuffer
 
@@ -145,11 +147,13 @@ class UserInfo:
         buf = Bytebuffer(data)
         self.version = struct.unpack(">Q", buf.read(8))[0]
         self.xuid = struct.unpack(">Q", buf.read(8))[0]
-        self.name = struct.unpack("128s", buf.read(c.MAX_PLAYER_NAME_LENGTH))[0].strip(b"\0").decode(errors="replace").strip("\n")
+        self.name = struct.unpack("128s", buf.read(c.MAX_PLAYER_NAME_LENGTH))[0].strip(b"\0").decode(
+            errors="replace").strip("\n")
         self.user_id = struct.unpack(">I", buf.read(4))[0]
         self.guid = struct.unpack("33s", buf.read(c.SIGNED_GUID_LEN))[0].strip(b"\0").decode(errors="replace")
         self.friends_id = struct.unpack(">I", buf.read(4))[0]
-        self.friends_name = struct.unpack("128s", buf.read(c.MAX_PLAYER_NAME_LENGTH))[0].strip(b"\0").decode(errors="replace").strip("\n")
+        self.friends_name = struct.unpack("128s", buf.read(c.MAX_PLAYER_NAME_LENGTH))[0].strip(b"\0").decode(
+            errors="replace").strip("\n")
         self.fake_player = struct.unpack(">B", buf.read(1))[0]
         self.is_hltv = struct.unpack(">B", buf.read(1))[0]
         self.custom_files = struct.unpack(">IIII", buf.read(c.MAX_CUSTOM_FILES * 4))
@@ -171,56 +175,60 @@ class StringTable:
             self.data.append({"entry": None, "user_data": None})
 
 
-class MiniStats:
-    def __init__(self, player):
-        self.player = player
-        self.k = player.k
-        self.d = player.d
-        self.a = player.a
+class ServerClass:
+    def __init__(self, id2, name, dt_name):
+        self.id = id2
+        self.name = name
+        self.dt = dt_name
+        self.fprops = None
 
 
-class MyRoundStats:
-    # stats at the end of the round
-    def __init__(self, t2, t3, players):
-        # 2 = "T" // 3 = "CT"
-        self.score_team2 = t2
-        self.score_team3 = t3
-        self.pscore = []
-        for p in players.values():
-            self.pscore.append(MiniStats(p))
-        self.pscore = sorted(self.pscore, key=lambda p2: p2.k, reverse=True)
+class Entity:
+    def __init__(self, parser, entity_id, cls_id, serial, parse=True):
+        self.class_id = cls_id
+        self.class_name = parser._serv_class_dict[cls_id].name
+        self.parse = parse
+        if parse:
+            self.parser = parser
+            self.entity_id = entity_id
+            self.serial = serial
+            self.props = dict()
+            self.props = copy.deepcopy(parser._baselines_dict[cls_id])
 
+    def update(self, table, key, value):
+        # if self.parse and self.props.get(table) and self.props[table].get(key):
+        self.props[table][key] = value
 
-class MyPlayer:
-    def __init__(self, data=None, ui=False):
-        self.id = None
-        self.eid = None
-        self.name = None
-        # self.steamid = None
-        self.profile = None
-        self.k = 0
-        self.d = 0
-        self.a = 0
-        # 2 = "T" // 3 = "CT"
-        self.start_team = None
-        self.userinfo = None
-        self.data = None
-        if data:
-            self.update(data, ui)
+    def find(self, name: str):
+        name = name.upper()
+        ret = dict()
+        for table in self.props.items():
+            if table[0].upper().find(name) != -1:
+                ret.update({table[0]: table[1]})
+            for prop in table[1].items():
+                if prop[0].upper().find(name) != -1:
+                    ret.update({prop[0]: prop[1]})
+        if len(ret.items()):
+            return ret
+        else:
+            return None
 
-    def update(self, data, ui=False):
-        if ui:
-            self.userinfo = data
-            self.id = data.user_id
-            self.name = data.name
-            # self.steamid = data.guid
-            self.profile = "https://steamcommunity.com/profiles/" + str(data.xuid)
-            # self.profile += str(c.PROFILE_NR + int(self.steamid[8]) + 2 * int(self.steamid[10:]))
+    def get_table(self, name: str):
+        if self.props.get(name):
+            return self.props[name]
+        else:
+            return None
 
+    def get_prop(self, name: str):
+        for keyd in self.props.values():
+            for key in keyd.items():
+                if key[0] == name:
+                    return key[1]
+        return None
 
 # EVENT
-    # name
-    # eventid
-    # keys
-    #     name
-    #     type
+# name
+# eventid
+# keys
+#     name
+#     type

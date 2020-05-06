@@ -121,48 +121,52 @@ class MainAppWindow:
         if g.thread_check_vac.is_alive():
             AW.MyAlertWindow(self.window, "VAC checking in progress, please wait!\n1 player / sec")
             return
+        to_add = set()
         for i2 in range(1, 11):
             if getattr(self, "btn_rad" + str(i2)).value.get() == tk.TRUE:
-                name = getattr(self, "label_player" + str(i2)).text.get()
                 link = g.profile_links[getattr(self, "label_player" + str(i2)).frame]
                 if link == "":
-                    return
-                try:
-                    exist = False
-                    wfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
-                    for line in wfile:
-                        player = WP.MyWatchPlayer(line)
-                        if player.link == link:
-                            exist = True
-                            wfile.close()
+                    continue
+                to_add.add(link)
+        if len(to_add):
+            try:
+                rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
+                for line in rfile:
+                    player = WP.MyWatchPlayer(line)
+                    if player.link in to_add:
+                        to_add.remove(player.link)
+                        if not len(to_add):
                             break
-                    if exist:
-                        continue
-                except Exception:
-                    # the file probably doesnt exist
-                    pass
-                dtt = dt.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
-                for player in g.demo_stats[len(g.demo_stats) - 1].pscore:
-                    if player.player.profile == link:
-                        kad = "{} / {} / {}".format(player.k, player.a, player.d)
-                        break
-                map = g.demo_stats["otherdata"]["map"]
-                if g.demo_nrplayers == 4:
-                    map += "_2v2"
-                link = link[link.rfind("/") + 1:]
-                # total = len(name) + len(link) + len(map) + len(kad) + len(dtt) + 6  # 5 spaces + banned
-                try:
-                    wfile = open(g.exec_path + "watchlist", "a", encoding="utf-8")
-                    # wfile.write("{}={} ".format(len(str(total)), total))
+            except Exception:
+                AW.MyAlertWindow(self.window, "Error opening WatchList (read)")
+                return
+            try:
+                rfile.close()
+            except Exception:
+                pass
+            try:
+                wfile = open(g.exec_path + "watchlist", "a", encoding="utf-8")
+            except Exception:
+                AW.MyAlertWindow(self.window, "Error opening WatchList (append)")
+                return
+            dtt = dt.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
+            map2 = g.demo_stats["otherdata"]["map"]
+            if g.demo_nrplayers == 4:
+                map2 += "_2v2"
+            for player in g.demo_stats[len(g.demo_stats) - 1].pscore:
+                if player.player.profile in to_add:
+                    name = player.player.name
+                    link = player.player.profile[player.player.profile.rfind("/") + 1:]
+                    kad = "{} / {} / {}".format(player.k, player.a, player.d)
                     wfile.write("{} {} {} {}={} ".format(link, "N", dtt, len(name), name))
-                    wfile.write("{}={} {}={}\n".format(len(kad), kad, len(map), map))
-                except Exception:
-                    AW.MyAlertWindow(self.window, "Error3 opening WatchList")
-                    return
-        try:
-            wfile.close()
-        except Exception:
-            pass
+                    wfile.write("{}={} {}={}\n".format(len(kad), kad, len(map2), map2))
+                    to_add.remove(player.player.profile)
+                    if not len(to_add):
+                        break
+            try:
+                wfile.close()
+            except Exception:
+                pass
 
     def _open_watchlist(self):
         if g.thread_check_vac.is_alive():

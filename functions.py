@@ -17,6 +17,7 @@ import myglobals as g
 import AlertWindow as AW
 import WatchPlayer as WP
 import csgo_demoparser.DemoParser as dp
+import round_stats_functions as my
 
 
 def update_time_label(label):
@@ -33,7 +34,7 @@ def process_packet(window):
     def find_url(pkt):
         # global g.event_pkt_found, g.found_time
         url = pkt[scplh.HTTPRequest].Host.decode() + pkt[scplh.HTTPRequest].Path.decode()
-        if url.find("/730/") != -1 and url != window.entry1_url.text.get():
+        if url.find("/730/") != -1 and url.find(".dem.bz2") != -1 and url != window.entry1_url.text.get():
             g.found_time = dt.datetime.now()
             g.list_links.append(url)
             window.entry1_url.text.set(url)
@@ -193,13 +194,24 @@ def download_from_link(link, button):
 def analyze_demo(path, button):
     # global g.demo_stats, g.demo_nrplayers
     button.text.set("analyzing...")
-    g.demo_stats = dp.DemoParser(path)
+    g.demo_stats = dp.DemoParser(path, ent="NONE")
+    g.demo_stats.subscribe_to_event("parser_start", my.new_demo)
+    g.demo_stats.subscribe_to_event("gevent_player_team", my.player_team)
+    g.demo_stats.subscribe_to_event("gevent_player_death", my.player_death)
+    g.demo_stats.subscribe_to_event("gevent_player_spawn", my.player_spawn)
+    g.demo_stats.subscribe_to_event("gevent_bot_takeover", my.bot_takeover)
+    g.demo_stats.subscribe_to_event("gevent_begin_new_match", my.begin_new_match)
+    g.demo_stats.subscribe_to_event("gevent_round_end", my.round_end)
+    g.demo_stats.subscribe_to_event("gevent_round_officially_ended", my.round_officially_ended)
+    g.demo_stats.subscribe_to_event("parser_update_pinfo", my.update_pinfo)
+    g.demo_stats.subscribe_to_event("cmd_dem_stop", my.cmd_dem_stop)
     try:
-        g.demo_stats = g.demo_stats.parse()
+        g.demo_stats.parse()
     except Exception:
         AW.MyAlertWindow(g.app.window, "Error parsing demo")
         button.text.set("Download DEMO")
         return
+    g.demo_stats = my.STATS
     g.demo_nrplayers = g.demo_stats["otherdata"]["nrplayers"]
     rounds_list = [None] * (len(g.demo_stats) - 1)
     for i2 in range(1, len(g.demo_stats)):

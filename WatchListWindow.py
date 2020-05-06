@@ -89,7 +89,7 @@ class WatchListWindow:
                         self.watchlist[i2]["name"].frame.config(bg="#101010")
             self.watchlist[i2]["kad"].text.set(player.kad if player else "TO REMOVE")
             self.watchlist[i2]["map"].text.set(player.map if player else "TO REMOVE")
-            if len(self.watchlist[i2]["map"].text.get()) > 13:
+            if len(self.watchlist[i2]["map"].text.get()) > 15:
                 self.watchlist[i2]["map"].frame.config(anchor=tk.W)
             else:
                 self.watchlist[i2]["map"].frame.config(anchor=tk.CENTER)
@@ -212,7 +212,7 @@ class WatchListWindow:
         self.window = tk.Toplevel(root)
         self.window.transient(root)
         self.window.title("WatchList")
-        self.window.minsize(720, 410)
+        self.window.minsize(750, 410)
         # self.window.resizable(False, False)
         sizex = self.window.minsize()[0]
         self.window.config(bg="#101010")
