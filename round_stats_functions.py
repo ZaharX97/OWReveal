@@ -128,7 +128,7 @@ def player_death(data):
                     PLAYERS[data["assister"]].a -= 1
         if k and not kto:
             PLAYERS[data["attacker"]].k += 1
-        if d and not dto:
+        if d and not dto and data["weapon"] != "planted_c4":
             PLAYERS[data["userid"]].d += 1
         if d and not dto and data["userid"] == data["attacker"]:
             PLAYERS[data["userid"]].k -= 2
