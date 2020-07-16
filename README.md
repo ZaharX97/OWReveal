@@ -3,31 +3,11 @@ CSGO Overwatch revealer by sniffing packets
 
 ![Main window](https://i.imgur.com/zyEJq0V.png) ![WatchList](https://i.imgur.com/MHWbTOE.jpg)
 
-## Versions:  
+## Latest Version:  
   
-* v**3.1.3** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.3)  
-  * updated demo parser  
-  * fixed team scores in wingman
-  * other small fixes
-
-* v**3.1.2** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.2)  
-  * project restructured (multiple smaller files instead of one huge file)  
-  * small bug fix while checking banned players  
-
-* v**3.1** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1)  
-  * Added a comment box in WatchList
-  * fixed some bugs
-
-* v**3.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.0)
-  * Added a watchlist to track suspect players
+* v**3.1.4** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.4)  
+  * fixed bomb death counted as +1 death
   
-* v**2.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/2.0)
-  * added demo parsing, see player stats in each round
-  * click on player to open steam profile
-  
-* v**1.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/1.0)
-  * First release, only finds the demo link
- 
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/dist/npcap-0.9988.exe)
 2. Open the program
@@ -62,3 +42,28 @@ Also when you select a round, it shows the stats from the end of that round.
 
 **Q**: What python version was this written for?  
 **A**: I wrote this using python 3.8.1  
+  
+## Oldest Versions: 
+  
+* v**3.1.3** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.3)  
+  * updated demo parser  
+  * fixed team scores in wingman
+  * other small fixes
+
+* v**3.1.2** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.2)  
+  * project restructured (multiple smaller files instead of one huge file)  
+  * small bug fix while checking banned players  
+
+* v**3.1** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1)  
+  * Added a comment box in WatchList
+  * fixed some bugs
+
+* v**3.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.0)
+  * Added a watchlist to track suspect players
+  
+* v**2.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/2.0)
+  * added demo parsing, see player stats in each round
+  * click on player to open steam profile
+  
+* v**1.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/1.0)
+  * First release, only finds the demo link
