@@ -11,7 +11,7 @@ CSGO Overwatch revealer by sniffing packets
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
-2. Open the program
+2. Open my program
 3. Select your network interface
 4. Press Start
 
