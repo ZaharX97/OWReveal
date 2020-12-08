@@ -5,8 +5,9 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**3.1.4** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.4)  
-  * fixed bomb death counted as +1 death
+* v**3.1.5** [Download](https://github.com/ZaharX97/OWReveal/releases)  
+  * changed npcap link to main site  
+  * fixed a bug when first adding to watchlist  
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/dist/npcap-0.9988.exe)
@@ -45,6 +46,9 @@ Also when you select a round, it shows the stats from the end of that round.
   
 ## Oldest Versions: 
   
+* v**3.1.4** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.4)  
+  * fixed bomb death counted as +1 death
+  
 * v**3.1.3** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.3)  
   * updated demo parser  
   * fixed team scores in wingman
@@ -66,4 +70,7 @@ Also when you select a round, it shows the stats from the end of that round.
   * click on player to open steam profile
   
 * v**1.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/1.0)
-  * First release, only finds the demo link
+  * First release, only finds the demo link  
+  
+## Tags that might help find this  
+csgo overwatch revealer the suspect find profile cs:go vac watchlist demo
