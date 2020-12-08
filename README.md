@@ -73,4 +73,8 @@ Also when you select a round, it shows the stats from the end of that round.
   * First release, only finds the demo link  
   
 ## Tags that might help find this  
-csgo overwatch revealer the suspect find profile cs:go vac watchlist demo
+csgo overwatch revealer the suspect find profile cs:go vac watchlist demo guide tutorial  
+How to Find "The Suspects" profile in Overwatch  
+csgo find suspect profile  
+[Tutorial] Viewing "The Suspect's" steam profile.  
+how to get the real name of the suspect in overwatch cases  
