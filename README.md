@@ -10,7 +10,7 @@ CSGO Overwatch revealer by sniffing packets
   * fixed a bug when first adding to watchlist  
   
 ## How to use?
-1. Download and install npcap (https://nmap.org/npcap/dist/npcap-0.9988.exe)
+1. Download and install npcap (https://nmap.org/npcap/)
 2. Open the program
 3. Select your network interface
 4. Press Start
