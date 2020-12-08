@@ -131,15 +131,23 @@ class MainAppWindow:
         if len(to_add):
             try:
                 rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
-                for line in rfile:
-                    player = WP.MyWatchPlayer(line)
-                    if player.link in to_add:
-                        to_add.remove(player.link)
-                        if not len(to_add):
-                            break
+            except FileNotFoundError:
+                tempwrite = open(g.exec_path + "watchlist", "w", encoding="utf-8")
+                tempwrite.close()
+                try:
+                    rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
+                except:
+                    AW.MyAlertWindow(self.window, "Error opening WatchList (read)")
+                    return
             except Exception:
                 AW.MyAlertWindow(self.window, "Error opening WatchList (read)")
                 return
+            for line in rfile:
+                player = WP.MyWatchPlayer(line)
+                if player.link in to_add:
+                    to_add.remove(player.link)
+                    if not len(to_add):
+                        break
             try:
                 rfile.close()
             except Exception:

@@ -100,7 +100,14 @@ def check_npcap(window):
         return True
     except RuntimeError:
         AW.MyAlertWindow(window.window,
-                         "Can't find npcap. Get it from  " + g.npcap_link +
+                         "Can't find npcap. Get it from: " + g.npcap_link +
+                         "\nPress the DOWNLOAD button to go to the link")
+        window.entry1_url.text.set(g.npcap_link)
+        window.label3_time.text.set("npcap error")
+        return False
+    except:
+        AW.MyAlertWindow(window.window,
+                         "Unknown npcap error. Try to reinstall or get the latest version from: \n" + g.npcap_link +
                          "\nPress the DOWNLOAD button to go to the link")
         window.entry1_url.text.set(g.npcap_link)
         window.label3_time.text.set("npcap error")
@@ -205,6 +212,7 @@ def analyze_demo(path, button):
     g.demo_stats.subscribe_to_event("gevent_round_officially_ended", my.round_officially_ended)
     g.demo_stats.subscribe_to_event("parser_update_pinfo", my.update_pinfo)
     g.demo_stats.subscribe_to_event("cmd_dem_stop", my.cmd_dem_stop)
+    # g.demo_stats.subscribe_to_event("parser_new_tick", analyze_progress(button))
     try:
         g.demo_stats.parse()
     except Exception:
@@ -225,6 +233,12 @@ def analyze_demo(path, button):
 def open_link(link, button):
     # global g.browser_path, g.thread_download
     if link == "":
+        return
+    if link == g.npcap_link:
+        if g.browser_path is None:
+            web.open_new_tab(link)
+        else:
+            sp.Popen(g.browser_path + " " + link)
         return
     link = "http://" + link
     if g.thread_download.is_alive() or g.thread_analyze.is_alive():
@@ -318,6 +332,12 @@ def actual_check_vac():
     if failed > 0:
         text += "Failed to check {} players".format(failed)
     AW.MyAlertWindow(g.app.window, text)
+
+
+def analyze_progress(btn):
+    def analyze_progress2(data):
+        btn.text.set("analyzing... {} %".format(int(data)))
+    return analyze_progress2
 
 
 def placeholder():

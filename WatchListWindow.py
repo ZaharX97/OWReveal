@@ -197,8 +197,8 @@ class WatchListWindow:
         try:
             self.rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
         except FileNotFoundError:
-            self.rfile = open(g.exec_path + "watchlist", "w", encoding="utf-8")
-            self.rfile.close()
+            tempwrite = open(g.exec_path + "watchlist", "w", encoding="utf-8")
+            tempwrite.close()
             self.rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
         self.findex = 1
         self._lastpage = 0
