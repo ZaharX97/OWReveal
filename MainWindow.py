@@ -182,6 +182,10 @@ class MainAppWindow:
                     rank = player.player.rank
                     mode = 6 if g.demo_nrplayers == 10 else 7
                     link = player.player.profile[player.player.profile.rfind("/") + 1:]
+                    if not len(name):
+                        name = g.demo_stats["otherdata"]["PFN"][link]
+                        if not len(name):
+                            name = "unnamed"
                     kad = "{} / {} / {}".format(player.k, player.a, player.d)
                     wfile.write("{} {} {} {}={} ".format(link, "N", dtt, len(name), name))
                     wfile.write("{}={} {}={} ".format(len(kad), kad, len(map2), map2))

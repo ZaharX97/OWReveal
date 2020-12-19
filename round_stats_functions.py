@@ -7,7 +7,9 @@ max_players = 0
 PLAYERS = dict()
 BOTS = dict()
 takeovers = dict()
-STATS = {"otherdata": {}}
+STATS = {"otherdata": {
+    "PFN": {}
+}}
 RANK_STATS = dict()
 
 
@@ -68,7 +70,9 @@ def new_demo(data):
     PLAYERS = dict()
     BOTS = dict()
     takeovers = dict()
-    STATS = {"otherdata": {}}
+    STATS = {"otherdata": {
+        "PFN": {}
+    }}
     STATS["otherdata"].update({"map": data.map_name})
 
 
@@ -235,6 +239,8 @@ def cmd_dem_stop(data):
 def update_pinfo(data):
     global PLAYERS, max_players
     if data.guid != "BOT":
+        if not STATS["otherdata"]["PFN"].get(str(data.xuid)):
+            STATS["otherdata"]["PFN"].update({str(data.xuid): data.name})
         exist = None
         for x in PLAYERS.items():
             if data.xuid == x[1].userinfo.xuid:

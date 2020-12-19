@@ -23,18 +23,27 @@ import round_stats_functions as my
 
 def check_new_version():
     resp = req.get(g.PROJECT_LINK_LATEST)
-    last_ver = resp.url[resp.url.find("/releases/tag/") + 14:]
-    last_ver_list = last_ver.split(".")
-    this_ver = g.VERSION.split(".")
-    for idx in range(max(len(this_ver), len(last_ver_list))):
-        this_int = int(this_ver[idx])
-        last_int = int(last_ver_list[idx])
-        if last_int > this_int:
-            UW.MyUpdateWindow(g.app.window, last_ver, g.VERSION)
-            return
-        elif last_int < this_int:
-            print("You have a newer version than on Github")
-            break
+    if resp.status_code == req.codes.ok:
+        last_ver = resp.url[resp.url.find("/releases/tag/") + 14:]
+        last_ver_list = last_ver.split(".")
+        this_ver = g.VERSION.split(".")
+        for idx in range(max(len(this_ver), len(last_ver_list))):
+            try:
+                this_int = int(this_ver[idx])
+            except IndexError:
+                UW.MyUpdateWindow(g.app.window, last_ver, g.VERSION)
+                return
+            try:
+                last_int = int(last_ver_list[idx])
+            except IndexError:
+                print("You have a newer version than on Github")
+                return
+            if last_int > this_int:
+                UW.MyUpdateWindow(g.app.window, last_ver, g.VERSION)
+                return
+            elif last_int < this_int:
+                print("You have a newer version than on Github")
+                return
 
 
 

@@ -5,10 +5,12 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.0** [Download](https://github.com/ZaharX97/OWReveal/releases)  
+* v**4.0.1** [Download](https://github.com/ZaharX97/OWReveal/releases)  
   * added more info (rank, server)  
   * added a check for newer versions  
   * added some more stats to the WatchList
+  * 4.0.1: fixed a bug when cheaters had no name in WatchList
+  * 4.0.1: fixed the check for newer versions
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -51,22 +53,6 @@ Also when you select a round, it shows the stats from the end of that round.
   * changed npcap link to main site  
   * fixed a bug when first adding to watchlist 
   
-* v**3.1.4** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.4)  
-  * fixed bomb death counted as +1 death
-  
-* v**3.1.3** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.3)  
-  * updated demo parser  
-  * fixed team scores in wingman
-  * other small fixes
-
-* v**3.1.2** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.2)  
-  * project restructured (multiple smaller files instead of one huge file)  
-  * small bug fix while checking banned players  
-
-* v**3.1** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1)  
-  * Added a comment box in WatchList
-  * fixed some bugs
-
 * v**3.0** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.0)
   * Added a watchlist to track suspect players
   
