@@ -1,4 +1,6 @@
 def print_header(file, header):
+    if not file:
+        return
     file.write("\nDEMO HEADER:\n")
     file.write("    header= {}\n".format(header.header))
     file.write("    protocol= {}\n".format(header.demo_protocol))
@@ -14,6 +16,8 @@ def print_header(file, header):
 
 
 def print_event_list(file, my_list):
+    if not file:
+        return
     file.write("\nGAME EVENTS LIST:")
     for item in my_list.items():
         file.write("\n  > {}, {} <\n    ....".format(item[0], item[1].name))
@@ -23,6 +27,8 @@ def print_event_list(file, my_list):
 
 
 def print_counter(file, table):
+    if not file:
+        return
     file.write("\nCOMMANDS:\n")
     for item in sorted(table[0]):
         file.write("    cmd= {} / count= {}\n".format(item[0], item[1]))
@@ -35,6 +41,8 @@ def print_counter(file, table):
 
 
 def print_userinfo(file, data):
+    if not file:
+        return
     for x in data:
         if x.name == "userinfo":
             data = x.data
@@ -51,6 +59,8 @@ def print_userinfo(file, data):
 
 
 def print_players_userinfo(file, data):
+    if not file:
+        return
     file.write("\nUSERINFO:\n")
     file.write("    version / xuid / name / uid / guid / fid / fname / fakepl / isHLTV / custom / files / eid / tbd\n")
     for p in data.items():
@@ -63,6 +73,8 @@ def print_players_userinfo(file, data):
 
 
 def print_match_stats(file, data):
+    if not file:
+        return
     file.write("\nMATCH STATS:\n")
     for x in data.items():
         if x[0] == "otherdata":
@@ -79,6 +91,8 @@ def print_match_stats(file, data):
 
 
 def print_entities(file, data):
+    if not file:
+        return
     file.write("\nENTITIES:\n")
     for x in data.items():
         if x[1] is None or x[1].parse is False:
@@ -88,4 +102,23 @@ def print_entities(file, data):
             file.write("\n....{} //\n........".format(x2[0]))
             for x3 in x2[1].items():
                 file.write("{} = {} // ".format(x3[0], x3[1]))
+    file.write("\n")
+
+
+def print_one_entity(file, data):
+    if not file:
+        return
+    file.write("\n\nENTITY #{}: {} //".format(data.entity_id, data.class_name))
+    for x2 in data.props.items():
+        file.write("\n....{} //\n........".format(x2[0]))
+        for x3 in x2[1].items():
+            file.write("{} = {} // ".format(x3[0], x3[1]))
+    file.write("\n")
+
+
+def print_one_prop(file, data):
+    if not file:
+        return
+    for item in data.items():
+        file.write("{} = {} // ".format(item[0], item[1]))
     file.write("\n")

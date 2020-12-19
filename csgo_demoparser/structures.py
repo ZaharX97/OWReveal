@@ -160,6 +160,7 @@ class UserInfo:
         self.files_downloaded = struct.unpack(">B", buf.read(1))[0]
         self.entity_id = struct.unpack(">I", buf.read(4))[0]
         self.tbd = struct.unpack(">I", buf.read(4))[0]
+        self.eid = None
         del buf
 
 
@@ -175,21 +176,14 @@ class StringTable:
             self.data.append({"entry": None, "user_data": None})
 
 
-class ServerClass:
-    def __init__(self, id2, name, dt_name):
-        self.id = id2
-        self.name = name
-        self.dt = dt_name
-        self.fprops = None
-
-
 class Entity:
     def __init__(self, parser, entity_id, cls_id, serial, parse=True):
         self.class_id = cls_id
-        self.class_name = parser._serv_class_dict[cls_id].name
+        if cls_id:
+            self.class_name = parser._serv_class_list[cls_id]["name"]
         self.parse = parse
         if parse:
-            self.parser = parser
+            # self.parser = parser
             self.entity_id = entity_id
             self.serial = serial
             self.props = dict()
@@ -225,6 +219,25 @@ class Entity:
                 if key[0] == name:
                     return key[1]
         return None
+
+    def is_player(self):
+        #  entity id = userinfo key + 1
+        #  in resource table, player is entityid.zfill(3)
+        for x in self.parser._string_tables_list:
+            if x.name == "userinfo":
+                for x2 in x.data:
+                    if x2["entry"] + 1 == self.entity_id:
+                        return True
+                return False
+
+    def get_userinfo(self):
+        for x in self.parser._string_tables_list:
+            if x.name == "userinfo":
+                for x2 in x.data:
+                    if x2["entry"] + 1 == self.entity_id:
+                        return x2["user_data"]
+                return None
+
 
 # EVENT
 # name

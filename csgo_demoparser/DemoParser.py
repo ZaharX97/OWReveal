@@ -1,15 +1,17 @@
 import math
+import datetime as dat
 
 import csgo_demoparser.NETMSG_pb2 as pbuf
 import csgo_demoparser.PrintStuff as p
 import csgo_demoparser.consts as c
 from csgo_demoparser.BitReader import Bitbuffer
 from csgo_demoparser.ByteReader import Bytebuffer
-from csgo_demoparser.structures import DemoHeader, CommandHeader, StringTable, UserInfo, ServerClass, Entity
+from csgo_demoparser.structures import DemoHeader, CommandHeader, StringTable, UserInfo, Entity
 
 
 class DemoParser:
     def __init__(self, demo_path, dump=None, ent="ALL"):
+        self.demo_finished = False
         self._buf = Bytebuffer(open(demo_path, "rb").read())
         self._pbuf_dict = dict()
         for item in pbuf.NET_Messages.items():
@@ -26,15 +28,19 @@ class DemoParser:
             self.subscribe_to_event("packet_svc_PacketEntities", self._mypkt_svc_PacketEntities)
             if self._ent != "ALL":
                 self._ent_set = set()
-                self._ent_set.add("CCSPlayer")
-                self._ent_set.add("CCSTeam")
-                self._ent_set.add("CCSPlayerResource")
-                if self._ent_set == "P+G":
+                if self._ent == "STATS":
+                    self._ent_set.add("CCSPlayerResource")
+                else:
+                    self._ent_set.add("CCSPlayer")
+                    self._ent_set.add("CCSTeam")
+                    self._ent_set.add("CCSPlayerResource")
+                    self._ent_set.add("CCSGameRulesProxy")
                     self._ent_set.add("CBaseCSGrenadeProjectile")
         if dump:
             self.dump = open(dump, "w", encoding="utf-8")
             self._counter = [[], [], []]
 
+        # self.subscribe_to_event("gevent_player_death", self._my_player_death)
         self.subscribe_to_event("gevent_begin_new_match", self._my_begin_new_match)
         self.subscribe_to_event("gevent_round_end", self._my_round_end)
         self.subscribe_to_event("gevent_round_officially_ended", self._my_round_officially_ended)
@@ -45,17 +51,19 @@ class DemoParser:
 
         self.header = None
         self._game_events_dict = dict()
-        self._serv_class_dict = dict()
+        self._serv_class_list = list()
         self._pending_baselines_dict = dict()
         self._baselines_dict = dict()
         self._data_tables_dict = dict()
         self._string_tables_list = list()
         self._class_bits = None
         self._entities = dict()
-        self._players_userinfo = dict()
+        self._players_by_uid = dict()
         self.progress = 0
         self._match_started = False
         self._round_current = 1
+        self.opr = False
+        self.counttt = 0
 
     def subscribe_to_event(self, event: str, func: object):
         fncs = self._subscribers.get(event)
@@ -94,10 +102,14 @@ class DemoParser:
         self.header = DemoHeader(self._buf.read(1072))
         assert self.header.header == "HL2DEMO"
         self._sub_event("parser_start", self.header)
-        demo_finished = False
-        while not demo_finished:
+        old_tick = 0
+        while not self.demo_finished:
             command_header = CommandHeader(self._buf.read(6))
             tick = command_header.tick
+            if tick != old_tick:
+                self._sub_event("parser_new_tick", tick)
+                old_tick = tick
+            # print(command_header.tick, command_header.command, command_header.player)
             self.progress = round(tick / self.header.ticks * 100, 2)
             cmd = command_header.command
             # self.dump.write("cmd= {}\n".format(cmd))
@@ -108,10 +120,12 @@ class DemoParser:
             elif cmd in (c.DEM_SYNCTICK, c.DEM_CUSTOMDATA):  # 3 and 8
                 pass
             elif cmd == c.DEM_CONSOLECMD:  # 4
-                pass
+                self._handle_consolecmd()
+                # pass
                 # self.read_raw_data(None, 0)
             elif cmd == c.DEM_USERCMD:  # 5
-                pass
+                self._handle_usercmd()
+                # pass
                 # self.handle_usercmd(None, 0)
             elif cmd == c.DEM_DATATABLES:  # 6
                 self._handle_datatables()
@@ -120,15 +134,14 @@ class DemoParser:
             elif cmd == c.DEM_STOP:  # 7
                 self._sub_event("cmd_dem_stop", None)
                 # print(self.progress, "%  >DEMO ENDED<")
-                demo_finished = True
+                print("MATCH ENDED.....................................................................")
+                self.demo_finished = True
             else:
-                demo_finished = True
-                print("Demo command not recognised: ", cmd)
-        self._demo_ended_stuff()
-        extra_data = dict()
-        extra_data.update({"file": self.dump})
+                self.demo_finished = True
+                raise Exception("Demo command not recognised: {}".format(cmd))
+        # self._demo_ended_stuff()
         self._sub_event("parser_demo_finished_print", self.dump)
-        self._sub_event("parser_demo_finished", None)
+        # self._sub_event("parser_demo_finished", None)
         if self.dump:
             self.dump.close()
         return
@@ -167,9 +180,13 @@ class DemoParser:
             name = self._buf.read_string()
             dt = self._buf.read_string()
             if self._ent != "NONE":
-                sv_cls = ServerClass(my_id, name, dt)
-                sv_cls.fprops = self._flatten_dt(self._data_tables_dict[dt])
-                self._serv_class_dict.update({my_id: sv_cls})
+                sv_cls = {
+                    "id": my_id,
+                    "name": name,
+                    "dt": dt,
+                    "fprops": self._flatten_dt(self._data_tables_dict[dt])
+                }
+                self._serv_class_list.append(sv_cls)
                 baseline = self._pending_baselines_dict.get(my_id)
                 if baseline:
                     self._baselines_dict.update({my_id: self._get_baseline(baseline, my_id)})
@@ -225,17 +242,21 @@ class DemoParser:
                     user_data = _buf.readBits(size * 8)
                 if uinfo:
                     user_data = UserInfo(user_data)
-                    self._update_pinfo(user_data)
+                    user_data.entity_id = int(res.data[index]["entry"]) + 1
+                    self._sub_event("parser_update_pinfo", user_data)
+                    self._update_pinfo(user_data, res.data[index]["entry"])
                 res.data[index]["user_data"] = user_data
             if len(history) == 32:
                 history.pop(0)
             history.append(entry)
             if res.name == "instancebaseline" and user_data:
                 cls_id = int(entry)
-                if not self._serv_class_dict.get(cls_id):
+                try:
+                    self._serv_class_list[cls_id]
+                except IndexError:
                     self._pending_baselines_dict.update({cls_id: user_data})
-                else:
-                    self._baselines_dict.update({cls_id: self._get_baseline(user_data, cls_id)})
+                    continue
+                self._baselines_dict.update({cls_id: self._get_baseline(user_data, cls_id)})
 
     def _mypkt_svc_UpdateStringTable(self, data):
         msg = pbuf.CSVCMsg_UpdateStringTable()
@@ -248,7 +269,11 @@ class DemoParser:
 
     def _mypkt_svc_GameEvent(self, data):
         msg = pbuf.CSVCMsg_GameEvent()
-        msg.ParseFromString(data)
+        try:
+            msg.ParseFromString(data)
+        except UnicodeDecodeError:
+            print("msg.eventid:{}/".format(msg.eventid))
+            return
         if self.dump:
             self._update_cmd_counter(msg.eventid, ev=True)
         args = {}
@@ -272,9 +297,7 @@ class DemoParser:
             elif typed == 8:
                 key_val = msg.keys[i].val_wstring
             else:
-                key_val = None
-                print("UNKNOWN >", msg.keys[i])
-                assert key_val is not None
+                raise Exception("UNKNOWN GameEvent Key Type: {}".format(msg.keys[i]))
             args.update({key_name: key_val})
         self._sub_event("gevent_" + self._game_events_dict[msg.eventid].name, args)
 
@@ -288,12 +311,14 @@ class DemoParser:
             assert (0 <= entity_id <= (1 << c.MAX_EDICT_BITS)), "Entity id: {} < out of range".format(entity_id)
             if buf.read_bit():
                 self._entities.update({entity_id: None})
+                # if self._entities.get(entity_id):
+                #     self._entities.pop(entity_id)
                 buf.read_bit()
             elif buf.read_bit():
                 cls_id = buf.read_uint_bits(self._class_bits)
                 serial = buf.read_uint_bits(c.NUM_NETWORKED_EHANDLE_SERIAL_NUMBER_BITS)
                 if self._ent != "ALL":
-                    if self._serv_class_dict[cls_id].name in self._ent_set:
+                    if self._serv_class_list[cls_id]["name"] in self._ent_set:
                         new_entity = Entity(self, entity_id, cls_id, serial)
                     else:
                         new_entity = Entity(self, entity_id, cls_id, serial, parse=False)
@@ -306,7 +331,7 @@ class DemoParser:
                 self._read_new_entity(buf, entity)
 
     def _read_new_entity(self, buf, entity):
-        sv_cls = self._serv_class_dict[entity.class_id]
+        sv_cls = self._serv_class_list[entity.class_id]
         updates = self._handle_entity_update(buf, sv_cls, buffer=True)
         if entity.parse is False:
             return
@@ -325,10 +350,18 @@ class DemoParser:
 
     # EVENTS HANDLERS >
 
+    def _my_player_death(self, data):
+        pass
+        # if not self.opr:
+        #     p.print_entities(self.dump, self._entities)
+        #     self.dump.write("\n.........................................................................................................................................................................................\n")
+        #     self.opr = True
+
     def _my_begin_new_match(self, data):
         # pass
         self._match_started = True
-        # print("MATCH STARTED.....................................................................")
+        # self.opr = False
+        print("MATCH STARTED.....................................................................")
 
     def _my_round_end(self, data):
         pass
@@ -339,9 +372,12 @@ class DemoParser:
         # pass
         if self._match_started:
             self._round_current += 1
-        # print("ROUND {}..........................................................".format(self._round_current))
-        # if self._round_current == 7:
-        #     p.print_entities(self.dump, self._entities)
+            # self.opr = False
+        if self._round_current == 2:
+            p.print_players_userinfo(self.dump, self._players_by_uid)
+            p.print_one_entity(self.dump, self.get_resource_table())
+            # p.print_entities(self.dump, self._entities)
+        print("ROUND {}..........................................................".format(self._round_current))
 
     # NO MORE EVENTS HANDLERS <
 
@@ -357,7 +393,7 @@ class DemoParser:
                 break
             indices.append(val)
         for i2 in indices:
-            prop = sv_cls.fprops[i2]
+            prop = sv_cls["fprops"][i2]
             val2 = buf.decode(prop)
             new_props.append({
                 "prop": prop,
@@ -367,7 +403,7 @@ class DemoParser:
 
     def _get_baseline(self, data, id2):
         baseline = dict()
-        sv_cls = self._serv_class_dict[id2]
+        sv_cls = self._serv_class_list[id2]
         for item in self._handle_entity_update(data, sv_cls):
             table_name = item["prop"]["table"].net_table_name
             var_name = item["prop"]["prop"].var_name
@@ -446,24 +482,8 @@ class DemoParser:
                 excl.extend(self._get_excl_props(sub_table))
         return excl
 
-    def _update_pinfo(self, data):
-        self._sub_event("parser_update_pinfo", data)
-        if data.guid != "BOT":
-            exist = None
-            for x in self._players_userinfo.items():
-                if data.xuid == x[1].xuid:
-                    exist = x[0]
-                    break
-            if exist:
-                self._players_userinfo.update({exist: data})
-                if exist != data.user_id:
-                    self._players_userinfo.update({data.user_id: self._players_userinfo[exist]})
-                    self._players_userinfo.pop(exist)
-                self._sub_event("parser_old_player_connected", data)
-            else:
-                self._sub_event("parser_new_player_connected", data)
-                self._players_userinfo.update({data.user_id: data})
-            # self._max_players = len(self._players_userinfo)
+    def _update_pinfo(self, data, entry):
+        self._players_by_uid.update({data.user_id: data})
 
     def _update_cmd_counter(self, value, cmd=False, msg=False, ev=False):
         if cmd is True:
@@ -490,9 +510,58 @@ class DemoParser:
 
     def _demo_ended_stuff(self):
         if self.dump:
+            # p.print_one_entity(self.dump, self.get_resource_table())
             p.print_header(self.dump, self.header)
             p.print_event_list(self.dump, self._game_events_dict)
             p.print_counter(self.dump, self._counter)
-            # p.print_userinfo(self.dump, self._string_tables_list)
-            p.print_players_userinfo(self.dump, self._players_userinfo)
-            # p.print_entities(self.dump, self._entities)
+            p.print_userinfo(self.dump, self._string_tables_list)
+            # p.print_players_userinfo(self.dump, self._players_by_uid)
+            p.print_entities(self.dump, self._entities)
+
+    #  OTHER FUNCTIONS >
+
+    def get_player_entities(self, bots=False):
+        ret = list()
+        for x in self._string_tables_list:
+            if x.name == "userinfo":
+                for x2 in x.data:
+                    ud = x2["user_data"]
+                    entry = x2["entry"]
+                    if not ud or not entry:
+                        continue
+                    if not bots and ud.guid == "BOT":
+                        continue
+                    y = self._entities.get(int(x2["entry"]) + 1)
+                    if y:
+                        ret.append(y)
+        return ret
+
+    def get_team_entities(self, all4=False):
+        ret = list()
+        all4 = 0 if all4 else 2
+        for x in self._entities.values():
+            if x and x.class_name == "CCSTeam":
+                if x.get_prop("m_iTeamNum") >= all4:
+                    ret.append(x)
+        return ret
+
+    def get_resource_table(self):
+        for x in self._entities.values():
+            if x and x.class_name == "CCSPlayerResource":
+                return x
+
+    def get_gamerules_table(self):
+        for x in self._entities.values():
+            if x and x.class_name == "CCSGameRulesProxy":
+                return x
+
+    def _handle_consolecmd(self):
+        length = self._buf.read_int()
+        data = self._buf.read(length)
+        # print(data)
+
+    def _handle_usercmd(self):
+        length = self._buf.read_int()
+        length = self._buf.read_int()
+        data = self._buf.read(length)
+        # print(data)

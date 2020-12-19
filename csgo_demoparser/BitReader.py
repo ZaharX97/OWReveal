@@ -1,4 +1,5 @@
 import math
+import struct
 
 import csgo_demoparser.consts as c
 
@@ -118,8 +119,15 @@ class Bitbuffer:
             self.dataPart >>= a_bits
             return res
 
+    # def read_uint_bits2(self, a_bits):
+    #     return int.from_bytes(self.readBits(a_bits), byteorder="little", signed=False)
+    #
+    # def read_sint_bits2(self, a_bits):
+    #     return int.from_bytes(self.readBits(a_bits), byteorder="little", signed=True)
+
     # Read signed n-bits
     def read_sint_bits(self, a_bits):
+        # return self._get_signed_nr(self.read_uint_bits(a_bits), a_bits)
         return (self.read_uint_bits(a_bits) << (32 - a_bits)) >> (32 - a_bits)
 
     # Read string
@@ -221,8 +229,11 @@ class Bitbuffer:
                     ret = self.read_bit()
                 else:
                     ret = self.read_uint_bits(prop.num_bits)
+                    # if prop.var_name == "m_hOwnerEntity":
+                    #     print(ret, 2 ** prop.num_bits - ret, bin(ret), prop.num_bits)
             else:
                 ret = self.read_sint_bits(prop.num_bits)
+                ret = self._get_signed_nr(ret, prop.num_bits)
         return ret
 
     def _decode_float(self, prop):
@@ -247,7 +258,7 @@ class Bitbuffer:
         elif flags2 & c.SPROP_COORD_MP_INTEGRAL:
             val = self._read_bit_coord_mp(c.CW_Integral)
         elif flags2 & c.SPROP_NOSCALE:
-            val = self.read_uint_bits(32)  # m_fAccuracyPenalty 1003621115
+            val = struct.unpack("<f", self.readBits(32))[0]  # m_fAccuracyPenalty 1003621115
         elif flags2 & c.SPROP_NORMAL:
             val = self._read_bit_normal()
         elif flags2 & c.SPROP_CELL_COORD:
@@ -400,3 +411,10 @@ class Bitbuffer:
             if sign:
                 ret = -ret
         return ret
+
+    def _get_signed_nr(self, number, bitLength):
+        mask = (2 ** bitLength) - 1
+        if number & (1 << (bitLength - 1)):
+            return number | ~mask
+        else:
+            return number & mask

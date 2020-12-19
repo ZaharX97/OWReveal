@@ -1,13 +1,14 @@
 # OWReveal
 CSGO Overwatch revealer by sniffing packets
 
-![Main window](https://i.imgur.com/zyEJq0V.png) ![WatchList](https://i.imgur.com/MHWbTOE.jpg)
+![Main window](https://i.imgur.com/MaP0Fut.png) ![WatchList](https://i.imgur.com/bh06N3I.png)
 
 ## Latest Version:  
   
-* v**3.1.5** [Download](https://github.com/ZaharX97/OWReveal/releases)  
-  * changed npcap link to main site  
-  * fixed a bug when first adding to watchlist  
+* v**4.0** [Download](https://github.com/ZaharX97/OWReveal/releases)  
+  * added more info (rank, server)  
+  * added a check for newer versions  
+  * added some more stats to the WatchList
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -44,7 +45,11 @@ Also when you select a round, it shows the stats from the end of that round.
 **Q**: What python version was this written for?  
 **A**: I wrote this using python 3.8.1  
   
-## Oldest Versions: 
+## Older Versions: 
+  
+* v**3.1.5** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.5)  
+  * changed npcap link to main site  
+  * fixed a bug when first adding to watchlist 
   
 * v**3.1.4** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.4)  
   * fixed bomb death counted as +1 death

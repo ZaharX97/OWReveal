@@ -1,3 +1,5 @@
+import myglobals as g
+
 match_started = False
 round_current = 1
 team_score = {2: 0, 3: 0}
@@ -6,6 +8,7 @@ PLAYERS = dict()
 BOTS = dict()
 takeovers = dict()
 STATS = {"otherdata": {}}
+RANK_STATS = dict()
 
 
 class MiniStats:
@@ -39,6 +42,7 @@ class MyPlayer:
         self.d = 0
         self.a = 0
         # 2 = "T" // 3 = "CT"
+        self.rank = None
         self.start_team = None
         self.userinfo = None
         self.data = None
@@ -244,6 +248,44 @@ def update_pinfo(data):
         else:
             PLAYERS.update({data.user_id: MyPlayer(data, ui=True)})
         max_players = len(PLAYERS)
+
+
+def new_demo_ranks(data):
+    global RANK_STATS
+    g.ranks_done = False
+    RANK_STATS = dict()
+
+
+def get_ranks(data):
+    if g.ranks_done:
+        g.ranks_done = False
+        g.demo_ranks.demo_finished = True
+    else:
+        res_table = g.demo_ranks.get_resource_table()
+        if not res_table:
+            return
+        else:
+            res_table = res_table.props
+        for player in g.demo_ranks._players_by_uid.values():
+            if player.xuid == 0:
+                continue
+            if not RANK_STATS.get(player.xuid):
+                RANK_STATS.update({player.xuid: None})
+            if RANK_STATS[player.xuid] is None:
+                key = str(player.entity_id).zfill(3)
+                connected = res_table["m_bConnected"][key]
+                in_team = res_table["m_iTeam"][key]
+                if not (in_team == 2 or in_team == 3) or not connected:
+                    RANK_STATS.pop(player.xuid)
+                    continue
+                if connected:
+                    rank = res_table["m_iCompetitiveRanking"][key]
+                    RANK_STATS.update({player.xuid: rank})
+        if len(RANK_STATS) == STATS["otherdata"]["nrplayers"]:
+            for ranks in RANK_STATS.values():
+                if ranks is None:
+                    break
+                g.ranks_done = True
 
 
 def _reset_pstats():

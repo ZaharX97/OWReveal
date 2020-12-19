@@ -45,7 +45,12 @@ class MyOptMenuStyle:
 
 
 class MyListboxStyle:
-    def __init__(self, root, items: list):
+    def update_listbox(self, items: list):
+        self.box.delete(0, tk.END)
+        del self.items_box
+        self.items_box = tk.StringVar(value=items)
+
+    def __init__(self, root, items: list, addmenu=True):
         self.box = tk.Listbox(root)
         self.items_box = tk.StringVar(value=items)
         if len(items) > 0:
@@ -57,18 +62,19 @@ class MyListboxStyle:
         self.box.config(activestyle=tk.NONE, listvariable=self.items_box, width=length + 2,
                         height=vlength + 1, selectmode=tk.MULTIPLE, font=("arial", 10, ""), fg="white",
                         bg="#101010", borderwidth=5)
-        self.menu = MyMenuStyle(self.box)
-        self.menu.menu.add_command(label="Copy selected",
-                                   command=lambda: f.copy_to_clipboard(self.box, self.box.curselection()))
-        self.menu.menu.add_command(label="Select all",
-                                   command=lambda: self.box.selection_set(0, tk.END))
-        self.menu.menu.add_command(label="Deselect all",
-                                   command=lambda: self.box.selection_clear(0, tk.END))
+        if addmenu:
+            self.menu = MyMenuStyle(self.box)
+            self.menu.menu.add_command(label="Copy selected",
+                                       command=lambda: f.copy_to_clipboard(self.box, self.box.curselection()))
+            self.menu.menu.add_command(label="Select all",
+                                       command=lambda: self.box.selection_set(0, tk.END))
+            self.menu.menu.add_command(label="Deselect all",
+                                       command=lambda: self.box.selection_clear(0, tk.END))
 
-        def rc_event2(event):
-            self.menu.menu.post(event.x_root, event.y_root)
+            def rc_event2(event):
+                self.menu.menu.post(event.x_root, event.y_root)
 
-        self.box.bind("<Button-3>", rc_event2)
+            self.box.bind("<Button-3>", rc_event2)
 
 
 class MyLabelStyle:

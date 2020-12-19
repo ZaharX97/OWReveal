@@ -15,9 +15,27 @@ import requests as req
 
 import myglobals as g
 import AlertWindow as AW
+import UpdateAlertWindow as UW
 import WatchPlayer as WP
 import csgo_demoparser.DemoParser as dp
 import round_stats_functions as my
+
+
+def check_new_version():
+    resp = req.get(g.PROJECT_LINK_LATEST)
+    last_ver = resp.url[resp.url.find("/releases/tag/") + 14:]
+    last_ver_list = last_ver.split(".")
+    this_ver = g.VERSION.split(".")
+    for idx in range(max(len(this_ver), len(last_ver_list))):
+        this_int = int(this_ver[idx])
+        last_int = int(last_ver_list[idx])
+        if last_int > this_int:
+            UW.MyUpdateWindow(g.app.window, last_ver, g.VERSION)
+            return
+        elif last_int < this_int:
+            print("You have a newer version than on Github")
+            break
+
 
 
 def update_time_label(label):
@@ -128,9 +146,12 @@ def save_settings():
 
 def import_settings():
     # global g.settings_dict, g.exec_path
+    g.browser_path = find_browser_path()
+    g.exec_path = find_file_path(True)
     try:
         file = open(g.exec_path + "ow_config", "r")
     except Exception:
+        import_settings_extra()
         return
     for line in file:
         sett = line[2:line.find(",") - 1]
@@ -145,7 +166,14 @@ def import_settings():
             if sett not in ("dl_loc", "rename"):
                 continue
             g.settings_dict[sett] = val[1:-1]
+    import_settings_extra()
     file.close()
+
+
+def import_settings_extra():
+    if not len(g.settings_dict["dl_loc"]):
+        g.settings_dict["dl_loc"] = find_file_path()
+    g.RANK_TRANSLATE = g.RANK_TRANSLATE_2 if g.settings_dict["rank_doodles"] else g.RANK_TRANSLATE_1
 
 
 def download_from_link(link, button):
@@ -216,9 +244,31 @@ def analyze_demo(path, button):
     try:
         g.demo_stats.parse()
     except Exception:
-        AW.MyAlertWindow(g.app.window, "Error parsing demo")
+        AW.MyAlertWindow(g.app.window, "Error parsing demo!\nPlease open a new issue with the download link for the demo")
         button.text.set("Download DEMO")
         return
+    g.demo_ranks = dp.DemoParser(path, ent="STATS")
+    g.demo_ranks.subscribe_to_event("parser_start", my.new_demo_ranks)
+    g.demo_ranks.subscribe_to_event("parser_new_tick", my.get_ranks)
+    try:
+        g.demo_ranks.parse()
+    except Exception:
+        AW.MyAlertWindow(g.app.window, "Error parsing demo ranks\nStats are OK")
+        for player in my.PLAYERS.values():
+            player.rank = 0
+    g.last_server = g.demo_ranks.header.server_name[:g.demo_ranks.header.server_name.find("(")-1]
+    if g.last_server.find("Valve CS:GO ") != -1:
+        g.last_server = g.last_server[12:]
+    stringsearch = g.last_server.find(" Server")
+    if stringsearch != -1:
+        g.last_server = g.last_server[:stringsearch]
+    g.demo_ranks = my.RANK_STATS
+    for xuid, rank in g.demo_ranks.items():
+        for player in my.PLAYERS.values():
+            if xuid == player.userinfo.xuid:
+                player.rank = rank
+                break
+
     g.demo_stats = my.STATS
     g.demo_nrplayers = g.demo_stats["otherdata"]["nrplayers"]
     rounds_list = [None] * (len(g.demo_stats) - 1)
@@ -230,11 +280,11 @@ def analyze_demo(path, button):
     button.text.set("Download DEMO")
 
 
-def open_link(link, button):
+def open_link(link, button, nodemo=False):
     # global g.browser_path, g.thread_download
     if link == "":
         return
-    if link == g.npcap_link:
+    if link == g.npcap_link or nodemo:
         if g.browser_path is None:
             web.open_new_tab(link)
         else:
@@ -255,7 +305,7 @@ def open_link(link, button):
 
 
 def copy_to_clipboard(root, text: str or list):
-    if len(text) == 0 or (type(text) is str and text == "http://"):
+    if len(text) == 0:
         return
     root.clipboard_clear()
     if type(text) is str:

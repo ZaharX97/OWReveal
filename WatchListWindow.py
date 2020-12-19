@@ -7,6 +7,7 @@ import myglobals as g
 import functions as f
 import AlertWindow as AW
 import WatchPlayer as WP
+import WatchStatsWindow as WSW
 import blackTkClasses as btk
 
 
@@ -73,7 +74,7 @@ class WatchListWindow:
             self.watchlist[i2]["nr"].text.set(str(self.findex) + ".")
             self.watchlist[i2]["name"].text.set(player.name if player else "TO REMOVE")
             if player:
-                if len(player.name) > 25:
+                if len(player.name) > g.NAME_CUTOUT_WATCHLIST:
                     self.watchlist[i2]["name"].frame.config(anchor=tk.W)
                 else:
                     self.watchlist[i2]["name"].frame.config(anchor=tk.CENTER)
@@ -87,6 +88,7 @@ class WatchListWindow:
                         self.watchlist[i2]["name"].frame.config(bg="#ff6666")
                     else:
                         self.watchlist[i2]["name"].frame.config(bg="#101010")
+            self.watchlist[i2]["rank"].text.set(g.RANK_TRANSLATE[player.rank] if player else "")
             self.watchlist[i2]["kad"].text.set(player.kad if player else "TO REMOVE")
             self.watchlist[i2]["map"].text.set(player.map if player else "TO REMOVE")
             if len(self.watchlist[i2]["map"].text.get()) > 15:
@@ -94,9 +96,10 @@ class WatchListWindow:
             else:
                 self.watchlist[i2]["map"].frame.config(anchor=tk.CENTER)
             self.watchlist[i2]["date"].text.set(player.date if player else "TO REMOVE")
+            temp_comm = player.comm if player else ""
             self.watchlist[i2]["comm"].frame.grid()
             self.watchlist[i2]["comm"].text.set(
-                self.comm_dict[self.findex] if self.comm_dict.get(self.findex) else player.comm)
+                self.comm_dict[self.findex] if self.comm_dict.get(self.findex) else temp_comm)
             self.findex += 1
         i2 = (self.findex - 1) % 10
         if i2 != 0:
@@ -105,6 +108,7 @@ class WatchListWindow:
                 self.watchlist[i2]["nr"].text.set("")
                 self.watchlist[i2]["name"].text.set("")
                 self.watchlist[i2]["name"].frame.config(bg="#101010")
+                self.watchlist[i2]["rank"].text.set("")
                 self.watchlist[i2]["kad"].text.set("")
                 self.watchlist[i2]["map"].text.set("")
                 self.watchlist[i2]["date"].text.set("")
@@ -164,8 +168,12 @@ class WatchListWindow:
             self.findex += 1
         wfile.close()
         self.rfile.close()
-        os.remove(g.exec_path + "watchlist")
-        os.rename(g.exec_path + "watchlist.temp", g.exec_path + "watchlist")
+        try:
+            os.remove(g.exec_path + "watchlist")
+            os.rename(g.exec_path + "watchlist.temp", g.exec_path + "watchlist")
+        except PermissionError:
+            AW.MyAlertWindow(self.window, "Cannot replace watchlist!\nwatchlist.temp was created as the newer "
+                                          "version\nRestart the app or replace it manually")
         self.window.destroy()
 
     def _check_stats(self):
@@ -193,6 +201,9 @@ class WatchListWindow:
                     self.to_comm.add(val)
                 self.comm_dict.update({val: self.watchlist[i2]["comm"].text.get()})
 
+    def _open_more_stats(self):
+        WSW.WatchStatsWindow(self.window, self._stats["nrpl"], self._stats["ban"])
+
     def __init__(self, root):
         try:
             self.rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
@@ -203,16 +214,16 @@ class WatchListWindow:
         self.findex = 1
         self._lastpage = 0
         self._maxpages = 0
-        self._stats = {}
-        self.watchlist = []
+        self._stats = dict()
+        self.watchlist = list()
         self.to_remove = set()
         self.to_ban = set()
         self.to_comm = set()
-        self.comm_dict = {}
+        self.comm_dict = dict()
         self.window = tk.Toplevel(root)
         self.window.transient(root)
         self.window.title("WatchList")
-        self.window.minsize(750, 430)
+        self.window.minsize(805, 430)
         # self.window.resizable(False, False)
         sizex = self.window.minsize()[0]
         self.window.config(bg="#101010")
@@ -227,25 +238,29 @@ class WatchListWindow:
         label = btk.MyLabelStyle(frame, "NAME")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=2, padx=5, sticky=tk.W + tk.E)
-        label = btk.MyLabelStyle(frame, "KAD")
+        label = btk.MyLabelStyle(frame, "RANK")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=3, padx=5, sticky=tk.W + tk.E)
-        label = btk.MyLabelStyle(frame, "MAP")
+        label = btk.MyLabelStyle(frame, "KAD")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=4, padx=5, sticky=tk.W + tk.E)
-        label = btk.MyLabelStyle(frame, "DATE ADDED")
+        label = btk.MyLabelStyle(frame, "MAP")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=5, padx=5, sticky=tk.W + tk.E)
-        label = btk.MyLabelStyle(frame, "COMMENTS")
+        label = btk.MyLabelStyle(frame, "DATE ADDED")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=6, padx=5, sticky=tk.W + tk.E)
+        label = btk.MyLabelStyle(frame, "COMMENTS")
+        label.frame.config(font=("", 12, "bold"))
+        label.frame.grid(row=0, column=7, padx=5, sticky=tk.W + tk.E)
         # frame.grid_columnconfigure(0, minsize=0.002 * sizex, weight=1)
         # frame.grid_columnconfigure(1, minsize=0.002 * sizex, weight=1)
-        frame.grid_columnconfigure(2, minsize=0.27 * sizex, weight=1)
-        frame.grid_columnconfigure(3, minsize=0.15 * sizex, weight=1)
-        frame.grid_columnconfigure(4, minsize=0.15 * sizex, weight=1)
-        frame.grid_columnconfigure(5, minsize=0.15 * sizex, weight=1)
-        frame.grid_columnconfigure(6, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(2, minsize=0.23 * sizex, weight=1)
+        frame.grid_columnconfigure(3, minsize=0.08 * sizex, weight=1)
+        frame.grid_columnconfigure(4, minsize=0.14 * sizex, weight=1)
+        frame.grid_columnconfigure(5, minsize=0.14 * sizex, weight=1)
+        frame.grid_columnconfigure(6, minsize=0.14 * sizex, weight=1)
+        frame.grid_columnconfigure(7, minsize=0.2 * sizex, weight=1)
         frame.grid_propagate(False)
         frame.pack(fill=tk.X)
         frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
@@ -277,25 +292,28 @@ class WatchListWindow:
             name.frame.grid(row=i2 - 1, column=2, padx=5, pady=2, sticky=tk.W + tk.E)
             name.frame.config(cursor="hand2")
             name.frame.bind("<Button-1>", lc_event1)
+            rank = btk.MyLabelStyle(frame, "")
+            rank.frame.grid(row=i2 - 1, column=3, padx=5, pady=2, sticky=tk.W + tk.E)
             kad = btk.MyLabelStyle(frame, "")
-            kad.frame.grid(row=i2 - 1, column=3, padx=5, pady=2, sticky=tk.W + tk.E)
+            kad.frame.grid(row=i2 - 1, column=4, padx=5, pady=2, sticky=tk.W + tk.E)
             mapp = btk.MyLabelStyle(frame, "")
-            mapp.frame.grid(row=i2 - 1, column=4, padx=5, pady=2, sticky=tk.W + tk.E)
+            mapp.frame.grid(row=i2 - 1, column=5, padx=5, pady=2, sticky=tk.W + tk.E)
             date = btk.MyLabelStyle(frame, "")
-            date.frame.grid(row=i2 - 1, column=5, padx=5, pady=2, sticky=tk.W + tk.E)
+            date.frame.grid(row=i2 - 1, column=6, padx=5, pady=2, sticky=tk.W + tk.E)
             comm = btk.MyEntryStyle(frame, "")
             comm.frame.config(state=tk.NORMAL, bg="#101010", fg="white", insertbackground="white")
-            comm.frame.grid(row=i2 - 1, column=6, padx=5, pady=2, sticky=tk.W + tk.E)
+            comm.frame.grid(row=i2 - 1, column=7, padx=5, pady=2, sticky=tk.W + tk.E)
             self.watchlist.append(
-                {"btn": check, "nr": numberr, "name": name, "kad": kad, "map": mapp, "date": date,
+                {"btn": check, "nr": numberr, "name": name, "rank": rank, "kad": kad, "map": mapp, "date": date,
                  "comm": comm, "player": None})
         # self.sf.inner.grid_columnconfigure(0, minsize=0.05 * sizex, weight=1)
         # self.sf.inner.grid_columnconfigure(1, minsize=0.05 * sizex, weight=1)
-        frame.grid_columnconfigure(2, minsize=0.27 * sizex, weight=1)
-        frame.grid_columnconfigure(3, minsize=0.15 * sizex, weight=1)
-        frame.grid_columnconfigure(4, minsize=0.15 * sizex, weight=1)
-        frame.grid_columnconfigure(5, minsize=0.15 * sizex, weight=1)
-        frame.grid_columnconfigure(6, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(2, minsize=0.22 * sizex, weight=1)
+        frame.grid_columnconfigure(3, minsize=0.08 * sizex, weight=1)
+        frame.grid_columnconfigure(4, minsize=0.14 * sizex, weight=1)
+        frame.grid_columnconfigure(5, minsize=0.14 * sizex, weight=1)
+        frame.grid_columnconfigure(6, minsize=0.14 * sizex, weight=1)
+        frame.grid_columnconfigure(7, minsize=0.2 * sizex, weight=1)
         # self.sf.inner.grid_propagate(False)
         # self.frame.update_idletasks()
         frame.pack(fill=tk.BOTH)
@@ -331,6 +349,8 @@ class WatchListWindow:
         btn.btn.grid(row=0, column=2, padx=5)
         btn = btk.MyButtonStyle(frame, "Check VAC", lambda: f.check_vac(self))
         btn.btn.grid(row=0, column=3, padx=5)
+        btn = btk.MyButtonStyle(frame, "More Stats", self._open_more_stats)
+        btn.btn.grid(row=0, column=4, padx=5)
         frame.pack(side=tk.LEFT)
         self._check_stats()
         frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)

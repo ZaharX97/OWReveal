@@ -18,6 +18,7 @@ class SettingsWindow:
         self._update_buttons(self.btn_set3)
         self._update_buttons(self.btn_set5)
         self._update_buttons(self.btn_set6)
+        self._update_buttons(self.btn_set7)
         if g.settings_dict["auto_dl"] and g.settings_dict["browser_dl"]:
             self._change_setting(self.btn_set2)
             self._change_setting(self.btn_set5)
@@ -31,6 +32,8 @@ class SettingsWindow:
             self._change_setting(self.btn_set5)
         elif button.btn.winfo_name() == "rename_dl":
             self._check_get_name(self.entry_demo)
+        elif button.btn.winfo_name() == "rank_doodles":
+            g.RANK_TRANSLATE = g.RANK_TRANSLATE_1 if g.settings_dict["rank_doodles"] else g.RANK_TRANSLATE_2
         g.settings_dict[button.btn.winfo_name()] = not g.settings_dict[button.btn.winfo_name()]
         self._update_buttons(button)
 
@@ -93,7 +96,7 @@ class SettingsWindow:
         self.window = tk.Toplevel(root)
         self.window.transient(root)
         self.window.title("Settings")
-        self.window.minsize(580, 330)
+        self.window.minsize(580, 375)
         sizex = self.window.minsize()[0]
         # sizey = self.window.minsize()[1]
         self.window.resizable(False, False)
@@ -144,24 +147,27 @@ class SettingsWindow:
                                           "delete_after")
         self.btn_set6.btn.grid(row=7, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
 
+        self.label_set7 = btk.MyLabelStyle(self.window, "Rank doodles")
+        self.label_set7.frame.grid(row=8, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
+        self.btn_set7 = btk.MyButtonStyle(self.window, "OFF", lambda: self._change_setting(self.btn_set7),
+                                          "rank_doodles")
+        self.btn_set7.btn.grid(row=8, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+
         self.btn_save = btk.MyButtonStyle(self.window, "Save to file", self._update_on_save)
-        self.btn_save.btn.grid(row=8, column=3, sticky=tk.E, padx=5, pady=5)
+        self.btn_save.btn.grid(row=9, column=3, sticky=tk.E, padx=5, pady=5)
 
         self.btn_analyze = btk.MyButtonStyle(self.window, "Analyze a demo", self._analyze_demo)
-        self.btn_analyze.btn.grid(row=8, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
+        self.btn_analyze.btn.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
 
         def lc_event1(event):
-            link = self.label_github.text.get()
-            if len(link) == 0:
-                return
             if g.browser_path is None:
-                web.open_new_tab(link)
+                web.open_new_tab(g.PROJECT_LINK)
             else:
-                sp.Popen(g.browser_path + " " + link)
+                sp.Popen(g.browser_path + " " + g.PROJECT_LINK)
 
-        self.label_github = btk.MyLabelStyle(self.window, "https://github.com/ZaharX97/OWReveal")
+        self.label_github = btk.MyLabelStyle(self.window, "v{}   {}".format(g.VERSION, g.PROJECT_LINK))
         self.label_github.frame.config(cursor="hand2")
-        self.label_github.frame.grid(row=8, column=1, padx=5, pady=5, columnspan=2)
+        self.label_github.frame.grid(row=9, column=1, padx=5, pady=5, columnspan=2)
         self.label_github.frame.bind("<Button-1>", lc_event1)
 
         self._update_all_settings()
