@@ -122,6 +122,8 @@ def player_team(data):
 
 def player_death(data):
     global match_started, PLAYERS, BOTS, takeovers, STATS, round_current, kills_round_list
+    if not g.WEAPON_TRANSLATE.get(data["weapon"]):
+        print(data)
     if match_started:
         k = PLAYERS.get(data["attacker"])
         a = PLAYERS.get(data["assister"])
@@ -132,11 +134,7 @@ def player_death(data):
         kto = takeovers.get(data["attacker"])
         ato = takeovers.get(data["assister"])
         dto = takeovers.get(data["userid"])
-        # if round_current == 7:
-        #     print(data)
-        # if not d:
-        #     temp = g.demo_stats._players_by_uid[data["userid"]]
-        #     randommm = 1
+        # print(data)
         krl_d = d
         if not d:
             if not((max_players == 10 and round_current <= 15) or (max_players == 4 and round_current <= 8)):
@@ -152,6 +150,8 @@ def player_death(data):
             else:
                 krl_k = MyPlayer(data=g.demo_stats._players_by_uid[data["attacker"]], ui=True, team=kf)
             krl_k.name = f"BOT {krl_k.name}"
+        if data["weapon"].find("knife") != -1:
+            data["weapon"] = "knife"
         kills_round_list.append([krl_k, a, krl_d, data])
         if data["assister"] and not data["assistedflash"]:
             if a and not ato:  # asd
