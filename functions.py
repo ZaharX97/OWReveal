@@ -8,6 +8,7 @@ import winreg as wr
 import bz2
 import subprocess as sp
 import webbrowser as web
+import tkinter as tk
 
 import scapy.all as scpa
 import scapy.layers.http as scplh
@@ -44,7 +45,6 @@ def check_new_version():
             elif last_int < this_int:
                 print("You have a newer version than on Github")
                 return
-
 
 
 def update_time_label(label):
@@ -106,11 +106,13 @@ def find_file_path(exe=None):
 
 
 def get_interfaces():
+    if platform.platform().lower().find("windows") != -1:
+        res = scpa.get_windows_if_list()
+    else:
+        res = scpa.get_if_list()
     interfaces_list = ["None  (select this if not sure)"]
-    for x in scpa.IFACES.data.values():
-        if str(x).find("Unknown") != -1:
-            continue
-        interfaces_list.append(str(x)[19:str(x).find("{") - 2])
+    for x in res:
+        interfaces_list.append(x["name"])
     return interfaces_list
 
 
@@ -250,12 +252,12 @@ def analyze_demo(path, button):
     g.demo_stats.subscribe_to_event("parser_update_pinfo", my.update_pinfo)
     g.demo_stats.subscribe_to_event("cmd_dem_stop", my.cmd_dem_stop)
     # g.demo_stats.subscribe_to_event("parser_new_tick", analyze_progress(button))
-    try:
-        g.demo_stats.parse()
-    except Exception:
-        AW.MyAlertWindow(g.app.window, "Error parsing demo!\nPlease open a new issue with the download link for the demo")
-        button.text.set("Download DEMO")
-        return
+    # try:
+    g.demo_stats.parse()
+    # except Exception as err:
+    #     AW.MyAlertWindow(g.app.window, f"Error parsing demo!\n{err}\nPlease open a new issue with the download link for the demo")
+    #     button.text.set("Download DEMO")
+    #     return
     g.demo_ranks = dp.DemoParser(path, ent="STATS")
     g.demo_ranks.subscribe_to_event("parser_start", my.new_demo_ranks)
     g.demo_ranks.subscribe_to_event("parser_new_tick", my.get_ranks)
@@ -285,6 +287,23 @@ def analyze_demo(path, button):
         rounds_list[i2 - 1] = "Round " + str(i2)
     g.app.btn6_round.update(rounds_list, cmd=g.app.update_stats)
     # g.app.btn6_round.text.set("Round " + str(len(g.demo_stats) - 2))
+    tempmap = g.demo_stats["otherdata"]["map"]
+    tempmapidx = tempmap.find("_scrimmagemap")
+    if tempmapidx != -1:
+        tempmap = tempmap[:tempmapidx]
+    g.app.label4_map.text.set(tempmap)
+    g.app.label5_server.text.set(g.last_server)
+    if len(tempmap) > 18:
+        g.app.label4_map.frame.config(anchor=tk.W)
+    if len(g.last_server) > 18:
+        g.app.label5_server.frame.config(anchor=tk.W)
+    # swapping player names for the one they used on first join
+    for xuid, pfname in g.demo_stats["otherdata"]["PFN"].items():
+        for player in my.PLAYERS.values():
+            if xuid == str(player.userinfo.xuid):
+                # print(f"{player.name} <=> {pfname}")
+                player.name = pfname
+                break
     g.app.update_stats(len(g.demo_stats) - 1)
     button.text.set("Download DEMO")
 

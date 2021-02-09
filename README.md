@@ -5,12 +5,9 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.0.1** [Download](https://github.com/ZaharX97/OWReveal/releases)  
-  * added more info (rank, server)  
-  * added a check for newer versions  
-  * added some more stats to the WatchList
-  * 4.0.1: fixed a bug when cheaters had no name in WatchList
-  * 4.0.1: fixed the check for newer versions
+* v**4.1** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+  * added a way to see kills each round  
+  * other small changes  
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -48,6 +45,13 @@ Also when you select a round, it shows the stats from the end of that round.
 **A**: I wrote this using python 3.8.1  
   
 ## Older Versions: 
+  
+* v**4.0.1** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.0.1)  
+  * added more info (rank, server)  
+  * added a check for newer versions  
+  * added some more stats to the WatchList  
+  * 4.0.1: fixed a bug when cheaters had no name in WatchList  
+  * 4.0.1: fixed the check for newer versions  
   
 * v**3.1.5** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.5)  
   * changed npcap link to main site  

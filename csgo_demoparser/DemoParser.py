@@ -271,8 +271,8 @@ class DemoParser:
         msg = pbuf.CSVCMsg_GameEvent()
         try:
             msg.ParseFromString(data)
-        except UnicodeDecodeError:
-            print("msg.eventid:{}/".format(msg.eventid))
+        except UnicodeDecodeError as err:
+            print(f"{err} / msg.eventid:{msg.eventid}")
             return
         if self.dump:
             self._update_cmd_counter(msg.eventid, ev=True)

@@ -58,18 +58,67 @@ MODE_TRANSLATE = {
     6: "Competitive",
     7: "Wingman"
 }
+WEAPON_TRANSLATE = {
+    "c4": "c4",
+    "planted_c4": "c4",
+    "knife": "knife",
+    "taser": "zeus",
+    "decoy": "decoy",
+    "flashbang": "flash",
+    "hegrenade": "he",
+    "incgrenade": "molotov",
+    "molotov": "molotov",
+    "smokegrenade": "smoke",
+    "m249": "m249",
+    "mag7": "mag7",
+    "negev": "negev",
+    "nova": "nova",
+    "sawedoff": "sawdoff",
+    "xm1014": "xm1014",
+    "cz75a": "cz75a",
+    "deagle": "deagle",
+    "elite": "dualies",
+    "fiveseven": "5-7",
+    "glock": "glock",
+    "hkp2000": "p2000",
+    "p250": "p250",
+    "revolver": "r8",
+    "tec9": "tec9",
+    "usp_silencer": "usp",
+    "ak47": "ak47",
+    "aug": "aug",
+    "awp": "awp",
+    "famas": "famas",
+    "g3sg1": "g3sg1",
+    "galilar": "galil",
+    "m4a1": "m4a4",
+    "m4a1_silencer": "m4a1",
+    "scar20": "scar20",
+    "sg556": "sg556",
+    "ssg08": "scout",
+    "bizon": "ppbizon",
+    "mac10": "mac10",
+    "mp5sd": "mp5",
+    "mp7": "mp7",
+    "mp9": "mp9",
+    "p90": "p90",
+    "ump45": "ump45",
+    "world": "world"
+}
 
 NAME_CUTOUT_MAIN = 16
 NAME_CUTOUT_WATCHLIST = 22
+NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 RANK_TRANSLATE = RANK_TRANSLATE_2
 
-VERSION = "4.0.1"
+VERSION = "4.1"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 
 list_links = list()
 profile_links = dict()
+stats_active = True
 browser_path = None
 exec_path = None
 last_server = None

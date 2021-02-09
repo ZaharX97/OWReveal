@@ -64,8 +64,10 @@ class MainAppWindow:
                 pname = g.demo_stats[stats].pscore[p].player.name
                 prank = g.demo_stats[stats].pscore[p].player.rank
                 # pname = "alongassstringtoseehowplayerswithlongnameslook"
+                # prank = 18
                 kda = "{} / {} / {}".format(g.demo_stats[stats].pscore[p].k, g.demo_stats[stats].pscore[p].a,
                                             g.demo_stats[stats].pscore[p].d)
+                # kda = "66 / 66 / 66"
                 if g.demo_stats[stats].pscore[p].player.start_team == 2:
                     if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
                         if len(pname) >= g.NAME_CUTOUT_MAIN:
@@ -104,12 +106,43 @@ class MainAppWindow:
                     getattr(self, "btn_rad" + str(indexct)).btn.grid_remove()
                     indext += 1
                     indexct += 1
-            tempmap = g.demo_stats["otherdata"]["map"]
-            tempmapidx = tempmap.find("_scrimmagemap")
-            if tempmapidx != -1:
-                tempmap = tempmap[:tempmapidx]
-            self.label4_map.text.set(tempmap)
-            self.label5_server.text.set(g.last_server)
+            kills = 0
+            for kills in range(len(g.demo_stats["otherdata"]["kills"][stats])):
+                atk = g.demo_stats["otherdata"]["kills"][stats][kills][0]
+                ass = g.demo_stats["otherdata"]["kills"][stats][kills][1]
+                ded = g.demo_stats["otherdata"]["kills"][stats][kills][2]
+                data = g.demo_stats["otherdata"]["kills"][stats][kills][3]
+                tempdata = g.demo_stats["otherdata"]["kills"][stats][kills]
+                # print(data)
+                # T = fg="#df2020" // CT = fg="#00bfff"
+                # 2 = "T" // 3 = "CT"
+                if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
+                    color = "#00bfff" if atk.start_team == 3 else "#df2020"
+                else:
+                    color = "#00bfff" if atk.start_team == 2 else "#df2020"
+                getattr(self, "label_atk{}".format(str(kills + 1))).frame.config(fg=color)
+                getattr(self, "label_atk{}".format(str(kills+1))).text.set(atk.name)
+                if len(atk.name) > g.NAME_CUTOUT_KILLS:
+                    getattr(self, f"label_atk{str(kills + 1)}").frame.config(anchor=tk.W)
+                else:
+                    getattr(self, f"label_atk{str(kills + 1)}").frame.config(anchor=tk.CENTER)
+                # data["weapon"] = "sawedoff"
+                getattr(self, "label_weapon{}".format(str(kills + 1))).text.set(g.WEAPON_TRANSLATE[data["weapon"]])
+                if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
+                    color = "#00bfff" if ded.start_team == 3 else "#df2020"
+                else:
+                    color = "#00bfff" if ded.start_team == 2 else "#df2020"
+                getattr(self, "label_ded{}".format(str(kills + 1))).frame.config(fg=color)
+                getattr(self, "label_ded{}".format(str(kills + 1))).text.set(ded.name)
+                if len(ded.name) > g.NAME_CUTOUT_KILLS:
+                    getattr(self, f"label_ded{str(kills + 1)}").frame.config(anchor=tk.W)
+                else:
+                    getattr(self, f"label_ded{str(kills + 1)}").frame.config(anchor=tk.CENTER)
+            while kills < 9:
+                kills += 1
+                getattr(self, "label_atk{}".format(str(kills + 1))).text.set("")
+                getattr(self, "label_weapon{}".format(str(kills + 1))).text.set("")
+                getattr(self, "label_ded{}".format(str(kills + 1))).text.set("")
         else:
             self.btn6_round.update([])
             self.btn6_round.text.set("Select a round")
@@ -124,8 +157,13 @@ class MainAppWindow:
                 getattr(self, "btn_rad" + str(p)).btn.grid()
                 if p > 5:
                     getattr(self, "label_player" + str(p)).frame.config(anchor=tk.E)
+                getattr(self, "label_atk{}".format(str(p))).text.set("")
+                getattr(self, "label_weapon{}".format(str(p))).text.set("")
+                getattr(self, "label_ded{}".format(str(p))).text.set("")
             self.label4_map.text.set("Map")
+            self.label4_map.frame.config(anchor=tk.CENTER)
             self.label5_server.text.set("Server")
+            self.label5_server.frame.config(anchor=tk.CENTER)
         self.window.update_idletasks()
 
     def _reset_chekcs(self):
@@ -182,10 +220,10 @@ class MainAppWindow:
                     rank = player.player.rank
                     mode = 6 if g.demo_nrplayers == 10 else 7
                     link = player.player.profile[player.player.profile.rfind("/") + 1:]
+                    # if not len(name):
+                    #     name = g.demo_stats["otherdata"]["PFN"][link]
                     if not len(name):
-                        name = g.demo_stats["otherdata"]["PFN"][link]
-                        if not len(name):
-                            name = "unnamed"
+                        name = "unnamed"
                     kad = "{} / {} / {}".format(player.k, player.a, player.d)
                     wfile.write("{} {} {} {}={} ".format(link, "N", dtt, len(name), name))
                     wfile.write("{}={} {}={} ".format(len(kad), kad, len(map2), map2))
@@ -205,6 +243,20 @@ class MainAppWindow:
             return
         WW.WatchListWindow(self.window)
 
+    def _toggle_stats_frame(self):
+        if g.stats_active:
+            self.frame_stats.grid_remove()
+            self.frame_kills.grid()
+            self.btn7_add_wl.btn.grid_remove()
+            self.btn_toggle.text.set("Show Stats")
+        else:
+            self.frame_kills.grid_remove()
+            self.frame_stats.grid()
+            self.btn7_add_wl.btn.grid()
+            self.btn_toggle.text.set("Show Kills")
+        g.stats_active = not g.stats_active
+        self.window.update_idletasks()
+
     def __init__(self, title, sizex, sizey):
         self.window = tk.Tk()
         self.window.title(title)
@@ -215,18 +267,18 @@ class MainAppWindow:
         self.window.protocol("WM_DELETE_WINDOW", self.window.destroy)
 
         self.btn1_interfaces = btk.MyOptMenuStyle(self.window, "Select one interface", f.get_interfaces())
-        self.btn1_interfaces.btn.grid(row=0, column=0, sticky=tk.W + tk.E, columnspan=9, pady=5, padx=5)
+        self.btn1_interfaces.btn.grid(row=0, column=0, sticky=tk.W + tk.E, columnspan=3, pady=5, padx=5)
 
         self.btn2_start = btk.MyButtonStyle(self.window, "Start", self.start_stop)
         self.btn2_start.btn.config(font=("", 16, ""))
-        self.btn2_start.btn.grid(row=0, column=9, columnspan=2, rowspan=2, sticky=tk.NSEW, padx=5, pady=5)
+        self.btn2_start.btn.grid(row=0, column=3, columnspan=2, rowspan=2, sticky=tk.NSEW, padx=5, pady=5)
 
         self.label1_dynamic = btk.MyLabelStyle(self.window, "Not looking for anything")
         self.label1_dynamic.frame.config(borderwidth=10, font=("", 14, "bold"), fg="red")
-        self.label1_dynamic.frame.grid(row=1, column=0, columnspan=9)
+        self.label1_dynamic.frame.grid(row=1, column=0, columnspan=3)
 
         self.entry1_url = btk.MyEntryStyle(self.window, "")
-        self.entry1_url.frame.grid(row=2, column=0, sticky=tk.W + tk.E, columnspan=11, ipady=3, padx=5, pady=2)
+        self.entry1_url.frame.grid(row=2, column=0, sticky=tk.W + tk.E, columnspan=5, ipady=3, padx=5, pady=2)
         self.menu1_entry1_copy = btk.MyMenuStyle(self.window)
         self.menu1_entry1_copy.menu.add_command(label="Copy", command=lambda: f.copy_to_clipboard(
             self.entry1_url.frame, self.entry1_url.text.get()))
@@ -237,96 +289,111 @@ class MainAppWindow:
         self.entry1_url.frame.bind("<Button-3>", rc_event1)
 
         self.label2_count = btk.MyLabelStyle(self.window, "Total DEMOs: 0")
-        self.label2_count.frame.grid(row=3, column=0, columnspan=3, sticky=tk.W, padx=5)
+        self.label2_count.frame.grid(row=3, column=0, sticky=tk.W, padx=5)
 
         self.label3_time = btk.MyLabelStyle(self.window, "No LINK found")
-        self.label3_time.frame.grid(row=3, column=2, columnspan=6, sticky=tk.W + tk.E, padx=5)
+        self.label3_time.frame.grid(row=3, column=1, sticky=tk.W, padx=5)
+
+        self.btn_toggle = btk.MyButtonStyle(self.window, "Show Kills", self._toggle_stats_frame)
+        self.btn_toggle.btn.grid(row=3, column=2, sticky=tk.W + tk.E, padx=5, pady=1)
 
         self.btn3_download = btk.MyButtonStyle(self.window, "Download DEMO",
                                                lambda: f.open_link(self.entry1_url.text.get(), self.btn3_download))
-        self.btn3_download.btn.grid(row=3, column=9, columnspan=2, sticky=tk.W + tk.E, padx=5, pady=1)
+        self.btn3_download.btn.grid(row=3, column=3, columnspan=2, sticky=tk.W + tk.E, padx=5, pady=1)
 
         self.btn4_link_list = btk.MyButtonStyle(self.window, "LINK List", lambda: LW.LinkListWindow(self.window))
-        self.btn4_link_list.btn.grid(row=9, column=9, sticky=tk.W + tk.E, padx=5, pady=1)
+        self.btn4_link_list.btn.grid(row=9, column=3, sticky=tk.W + tk.E, padx=5, pady=1)
 
         self.btn5_settings = btk.MyButtonStyle(self.window, "Settings", lambda: SW.SettingsWindow(self.window))
-        self.btn5_settings.btn.grid(row=9, column=10, sticky=tk.W + tk.E, padx=5, pady=1)
+        self.btn5_settings.btn.grid(row=9, column=4, sticky=tk.W + tk.E, padx=5, pady=1)
 
         self.btn6_round = btk.MyOptMenuStyle(self.window, "Select a round", [])
-        self.btn6_round.btn.grid(row=4, column=9, sticky=tk.W + tk.E, columnspan=2, pady=5, padx=5)
+        self.btn6_round.btn.grid(row=4, column=3, sticky=tk.W + tk.E, columnspan=2, pady=5, padx=5)
 
         self.label4_map = btk.MyLabelStyle(self.window, "Map")
         self.label4_map.frame.config(font=("", 11, "bold"), fg="green")
-        self.label4_map.frame.grid(row=5, column=9, columnspan=2, sticky=tk.W + tk.E, padx=5)
+        self.label4_map.frame.grid(row=5, column=3, columnspan=2, sticky=tk.W + tk.E, padx=5)
         self.label5_server = btk.MyLabelStyle(self.window, "Server")
         self.label5_server.frame.config(font=("", 11, "bold"), fg="pink")
-        self.label5_server.frame.grid(row=6, column=9, columnspan=2, sticky=tk.W + tk.E, padx=5)
+        self.label5_server.frame.grid(row=6, column=3, columnspan=2, sticky=tk.W + tk.E, padx=5)
 
         self.btn7_add_wl = btk.MyButtonStyle(self.window, "Add to WatchList", self._addto_watchlist)
-        self.btn7_add_wl.btn.grid(row=7, column=9, columnspan=2, sticky=tk.W + tk.E, padx=5)
+        self.btn7_add_wl.btn.grid(row=7, column=3, columnspan=2, sticky=tk.W + tk.E, padx=5)
 
         self.btn8_watchlist = btk.MyButtonStyle(self.window, "WatchList", self._open_watchlist)
-        self.btn8_watchlist.btn.grid(row=8, column=9, columnspan=2, sticky=tk.W + tk.E, padx=5)
+        self.btn8_watchlist.btn.grid(row=8, column=3, columnspan=2, sticky=tk.W + tk.E, padx=5)
 
-        self.label_teamct = btk.MyLabelStyle(self.window, "CT")
+        self.frame_scorehead = tk.Frame(self.window, bg="#101010", bd=0)  # width=sizex, height=20
+        self.frame_scorehead.grid(row=4, column=0, columnspan=3, rowspan=6, sticky=tk.NSEW)
+
+        self.label_teamct = btk.MyLabelStyle(self.frame_scorehead, "CT")
         self.label_teamct.frame.config(font=("", 16, "bold"), fg="#00bfff")
-        self.label_teamct.frame.grid(row=4, column=0, columnspan=3, sticky=tk.NSEW, padx=5)
-        self.label_scorect = btk.MyLabelStyle(self.window, "0")
+        self.label_teamct.frame.grid(row=0, column=0, sticky=tk.NSEW, padx=5)
+        self.label_scorect = btk.MyLabelStyle(self.frame_scorehead, "0")
         self.label_scorect.frame.config(font=("", 16, ""))
-        self.label_scorect.frame.grid(row=4, column=3, sticky=tk.NSEW, padx=5)
+        self.label_scorect.frame.grid(row=0, column=1, sticky=tk.NSEW, padx=5)
         # self.label_map = btk.MyLabelStyle(self.window, "-")
         # self.label_map.frame.grid(row=4, column=3, sticky=tk.W + tk.E, padx=5)
-        self.label_scoresep = btk.MyLabelStyle(self.window, "-")
+        self.label_scoresep = btk.MyLabelStyle(self.frame_scorehead, "-")
         self.label_scoresep.frame.config(font=("", 14, ""))
-        self.label_scoresep.frame.grid(row=4, column=4)
-        self.label_scoret = btk.MyLabelStyle(self.window, "0")
+        self.label_scoresep.frame.grid(row=0, column=2)
+        self.label_scoret = btk.MyLabelStyle(self.frame_scorehead, "0")
         self.label_scoret.frame.config(font=("", 16, ""))
-        self.label_scoret.frame.grid(row=4, column=5, sticky=tk.NSEW, padx=5)
-        self.label_teamt = btk.MyLabelStyle(self.window, "T")
+        self.label_scoret.frame.grid(row=0, column=3, sticky=tk.NSEW, padx=5)
+        self.label_teamt = btk.MyLabelStyle(self.frame_scorehead, "T")
         self.label_teamt.frame.config(font=("", 16, "bold"), fg="#df2020")
-        self.label_teamt.frame.grid(row=4, column=6, columnspan=3, sticky=tk.NSEW, padx=5)
+        self.label_teamt.frame.grid(row=0, column=4, sticky=tk.NSEW, padx=5)
 
-        self.label_player1 = btk.MyLabelStyle(self.window, "???")
-        self.label_player1.frame.grid(row=5, column=1, sticky=tk.W + tk.E, padx=5)
-        self.label_player2 = btk.MyLabelStyle(self.window, "???")
-        self.label_player2.frame.grid(row=6, column=1, sticky=tk.W + tk.E, padx=5)
-        self.label_player3 = btk.MyLabelStyle(self.window, "???")
-        self.label_player3.frame.grid(row=7, column=1, sticky=tk.W + tk.E, padx=5)
-        self.label_player4 = btk.MyLabelStyle(self.window, "???")
-        self.label_player4.frame.grid(row=8, column=1, sticky=tk.W + tk.E, padx=5)
-        self.label_player5 = btk.MyLabelStyle(self.window, "???")
-        self.label_player5.frame.grid(row=9, column=1, sticky=tk.W + tk.E, padx=5)
-        self.label_player6 = btk.MyLabelStyle(self.window, "???")
-        self.label_player6.frame.grid(row=5, column=7, sticky=tk.W + tk.E, padx=5)
-        self.label_player7 = btk.MyLabelStyle(self.window, "???")
-        self.label_player7.frame.grid(row=6, column=7, sticky=tk.W + tk.E, padx=5)
-        self.label_player8 = btk.MyLabelStyle(self.window, "???")
-        self.label_player8.frame.grid(row=7, column=7, sticky=tk.W + tk.E, padx=5)
-        self.label_player9 = btk.MyLabelStyle(self.window, "???")
-        self.label_player9.frame.grid(row=8, column=7, sticky=tk.W + tk.E, padx=5)
-        self.label_player10 = btk.MyLabelStyle(self.window, "???")
-        self.label_player10.frame.grid(row=9, column=7, sticky=tk.W + tk.E, padx=5)
+        self.frame_scorehead.grid_columnconfigure(0, minsize=0.35 * 0.8 * sizex, weight=1)
+        self.frame_scorehead.grid_columnconfigure(1, minsize=0.1375 * 0.8 * sizex, weight=1)
+        self.frame_scorehead.grid_columnconfigure(2, minsize=0.025 * 0.8 * sizex, weight=1)
+        self.frame_scorehead.grid_columnconfigure(3, minsize=0.1375 * 0.8 * sizex, weight=1)
+        self.frame_scorehead.grid_columnconfigure(4, minsize=0.35 * 0.8 * sizex, weight=1)
 
-        self.label_rank1 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank1.frame.grid(row=5, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank2 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank2.frame.grid(row=6, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank3 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank3.frame.grid(row=7, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank4 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank4.frame.grid(row=8, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank5 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank5.frame.grid(row=9, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank6 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank6.frame.grid(row=5, column=6, sticky=tk.W + tk.E, padx=5)
-        self.label_rank7 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank7.frame.grid(row=6, column=6, sticky=tk.W + tk.E, padx=5)
-        self.label_rank8 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank8.frame.grid(row=7, column=6, sticky=tk.W + tk.E, padx=5)
-        self.label_rank9 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank9.frame.grid(row=8, column=6, sticky=tk.W + tk.E, padx=5)
-        self.label_rank10 = btk.MyLabelStyle(self.window, "???")
-        self.label_rank10.frame.grid(row=9, column=6, sticky=tk.W + tk.E, padx=5)
+        self.frame_stats = tk.Frame(self.window, bg="#101010", bd=0)  # width=sizex, height=20
+        self.frame_stats.grid(row=5, column=0, columnspan=3, rowspan=6, sticky=tk.NSEW)
+
+        self.label_player1 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player1.frame.grid(row=0, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_player2 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player2.frame.grid(row=1, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_player3 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player3.frame.grid(row=2, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_player4 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player4.frame.grid(row=3, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_player5 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player5.frame.grid(row=4, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_player6 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player6.frame.grid(row=0, column=7, sticky=tk.W + tk.E, padx=5)
+        self.label_player7 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player7.frame.grid(row=1, column=7, sticky=tk.W + tk.E, padx=5)
+        self.label_player8 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player8.frame.grid(row=2, column=7, sticky=tk.W + tk.E, padx=5)
+        self.label_player9 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player9.frame.grid(row=3, column=7, sticky=tk.W + tk.E, padx=5)
+        self.label_player10 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_player10.frame.grid(row=4, column=7, sticky=tk.W + tk.E, padx=5)
+
+        self.label_rank1 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank1.frame.grid(row=0, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_rank2 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank2.frame.grid(row=1, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_rank3 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank3.frame.grid(row=2, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_rank4 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank4.frame.grid(row=3, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_rank5 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank5.frame.grid(row=4, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_rank6 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank6.frame.grid(row=0, column=6, sticky=tk.W + tk.E, padx=5)
+        self.label_rank7 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank7.frame.grid(row=1, column=6, sticky=tk.W + tk.E, padx=5)
+        self.label_rank8 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank8.frame.grid(row=2, column=6, sticky=tk.W + tk.E, padx=5)
+        self.label_rank9 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank9.frame.grid(row=3, column=6, sticky=tk.W + tk.E, padx=5)
+        self.label_rank10 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank10.frame.grid(row=4, column=6, sticky=tk.W + tk.E, padx=5)
 
         def lc_event1(event):
             link = g.profile_links[event.widget]
@@ -337,48 +404,48 @@ class MainAppWindow:
             else:
                 sp.Popen(g.browser_path + " " + link)
 
-        self.btn_rad1 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad1.btn.grid(row=5, column=0, padx=5)
-        self.btn_rad2 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad2.btn.grid(row=6, column=0, padx=5)
-        self.btn_rad3 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad3.btn.grid(row=7, column=0, padx=5)
-        self.btn_rad4 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad4.btn.grid(row=8, column=0, padx=5)
-        self.btn_rad5 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad5.btn.grid(row=9, column=0, padx=5)
-        self.btn_rad6 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad6.btn.grid(row=5, column=8, padx=5)
-        self.btn_rad7 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad7.btn.grid(row=6, column=8, padx=5)
-        self.btn_rad8 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad8.btn.grid(row=7, column=8, padx=5)
-        self.btn_rad9 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad9.btn.grid(row=8, column=8, padx=5)
-        self.btn_rad10 = btk.MyCheckButtonStyle(self.window)
-        self.btn_rad10.btn.grid(row=9, column=8, padx=5)
+        self.btn_rad1 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad1.btn.grid(row=0, column=0, padx=5)
+        self.btn_rad2 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad2.btn.grid(row=1, column=0, padx=5)
+        self.btn_rad3 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad3.btn.grid(row=2, column=0, padx=5)
+        self.btn_rad4 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad4.btn.grid(row=3, column=0, padx=5)
+        self.btn_rad5 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad5.btn.grid(row=4, column=0, padx=5)
+        self.btn_rad6 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad6.btn.grid(row=0, column=8, padx=5)
+        self.btn_rad7 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad7.btn.grid(row=1, column=8, padx=5)
+        self.btn_rad8 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad8.btn.grid(row=2, column=8, padx=5)
+        self.btn_rad9 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad9.btn.grid(row=3, column=8, padx=5)
+        self.btn_rad10 = btk.MyCheckButtonStyle(self.frame_stats)
+        self.btn_rad10.btn.grid(row=4, column=8, padx=5)
         self._reset_chekcs()
 
-        self.label_scorep1 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep1.frame.grid(row=5, column=3, sticky=tk.W, padx=5)
-        self.label_scorep2 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep2.frame.grid(row=6, column=3, sticky=tk.W, padx=5)
-        self.label_scorep3 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep3.frame.grid(row=7, column=3, sticky=tk.W, padx=5)
-        self.label_scorep4 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep4.frame.grid(row=8, column=3, sticky=tk.W, padx=5)
-        self.label_scorep5 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep5.frame.grid(row=9, column=3, sticky=tk.W, padx=5)
-        self.label_scorep6 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep6.frame.grid(row=5, column=5, sticky=tk.E, padx=5)
-        self.label_scorep7 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep7.frame.grid(row=6, column=5, sticky=tk.E, padx=5)
-        self.label_scorep8 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep8.frame.grid(row=7, column=5, sticky=tk.E, padx=5)
-        self.label_scorep9 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep9.frame.grid(row=8, column=5, sticky=tk.E, padx=5)
-        self.label_scorep10 = btk.MyLabelStyle(self.window, "0 / 0 / 0")
-        self.label_scorep10.frame.grid(row=9, column=5, sticky=tk.E, padx=5)
+        self.label_scorep1 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep1.frame.grid(row=0, column=3, sticky=tk.W, padx=5)
+        self.label_scorep2 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep2.frame.grid(row=1, column=3, sticky=tk.W, padx=5)
+        self.label_scorep3 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep3.frame.grid(row=2, column=3, sticky=tk.W, padx=5)
+        self.label_scorep4 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep4.frame.grid(row=3, column=3, sticky=tk.W, padx=5)
+        self.label_scorep5 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep5.frame.grid(row=4, column=3, sticky=tk.W, padx=5)
+        self.label_scorep6 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep6.frame.grid(row=0, column=5, sticky=tk.E, padx=5)
+        self.label_scorep7 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep7.frame.grid(row=1, column=5, sticky=tk.E, padx=5)
+        self.label_scorep8 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep8.frame.grid(row=2, column=5, sticky=tk.E, padx=5)
+        self.label_scorep9 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep9.frame.grid(row=3, column=5, sticky=tk.E, padx=5)
+        self.label_scorep10 = btk.MyLabelStyle(self.frame_stats, "0 / 0 / 0")
+        self.label_scorep10.frame.grid(row=4, column=5, sticky=tk.E, padx=5)
 
         # self.label_sep1 = btk.MyLabelStyle(self.window, "|")
         # self.label_sep1.frame.grid(row=5, column=3, sticky=tk.W + tk.E, padx=5)
@@ -391,26 +458,120 @@ class MainAppWindow:
         # self.label_sep5 = btk.MyLabelStyle(self.window, "|")
         # self.label_sep5.frame.grid(row=9, column=3, sticky=tk.W + tk.E, padx=5)
 
+        self.frame_stats.grid_columnconfigure(0, minsize=0.05 * 0.8 * sizex, weight=1)
+        self.frame_stats.grid_columnconfigure(1, minsize=0.2125 * 0.8 * sizex, weight=1)
+        self.frame_stats.grid_columnconfigure(2, minsize=0.0875 * 0.8 * sizex, weight=1)
+        self.frame_stats.grid_columnconfigure(3, minsize=0.1375 * 0.8 * sizex, weight=1)
+        self.frame_stats.grid_columnconfigure(4, minsize=0.025 * 0.8 * sizex, weight=1)
+        self.frame_stats.grid_columnconfigure(5, minsize=0.1375 * 0.8 * sizex, weight=1)
+        self.frame_stats.grid_columnconfigure(6, minsize=0.0875 * 0.8 * sizex, weight=1)
+        self.frame_stats.grid_columnconfigure(7, minsize=0.2125 * 0.8 * sizex, weight=1)
+        self.frame_stats.grid_columnconfigure(8, minsize=0.05 * 0.8 * sizex, weight=1)
+
+        self.frame_stats.grid_rowconfigure(0, minsize=30, weight=0)
+        self.frame_stats.grid_rowconfigure(1, minsize=30, weight=0)
+        self.frame_stats.grid_rowconfigure(2, minsize=30, weight=0)
+        self.frame_stats.grid_rowconfigure(3, minsize=30, weight=0)
+        self.frame_stats.grid_rowconfigure(4, minsize=30, weight=0)
+        self.frame_stats.grid_propagate(False)
+
+        self.frame_kills = tk.Frame(self.window, bg="#101010", bd=0)  # width=sizex, height=20
+        self.frame_kills.grid(row=5, column=0, columnspan=3, rowspan=6, sticky=tk.NSEW)
+        self.frame_kills.grid_remove()
+
+        self.label_atk1 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk1.frame.grid(row=0, column=0, sticky=tk.W + tk.E, padx=5)
+        self.label_atk2 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk2.frame.grid(row=1, column=0, sticky=tk.W + tk.E, padx=5)
+        self.label_atk3 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk3.frame.grid(row=2, column=0, sticky=tk.W + tk.E, padx=5)
+        self.label_atk4 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk4.frame.grid(row=3, column=0, sticky=tk.W + tk.E, padx=5)
+        self.label_atk5 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk5.frame.grid(row=4, column=0, sticky=tk.W + tk.E, padx=5)
+        self.label_atk6 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk6.frame.grid(row=0, column=4, sticky=tk.W + tk.E, padx=5)
+        self.label_atk7 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk7.frame.grid(row=1, column=4, sticky=tk.W + tk.E, padx=5)
+        self.label_atk8 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk8.frame.grid(row=2, column=4, sticky=tk.W + tk.E, padx=5)
+        self.label_atk9 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk9.frame.grid(row=3, column=4, sticky=tk.W + tk.E, padx=5)
+        self.label_atk10 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_atk10.frame.grid(row=4, column=4, sticky=tk.W + tk.E, padx=5)
+
+        self.label_weapon1 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon1.frame.grid(row=0, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_weapon2 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon2.frame.grid(row=1, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_weapon3 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon3.frame.grid(row=2, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_weapon4 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon4.frame.grid(row=3, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_weapon5 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon5.frame.grid(row=4, column=1, sticky=tk.W + tk.E, padx=5)
+        self.label_weapon6 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon6.frame.grid(row=0, column=5, sticky=tk.W + tk.E, padx=5)
+        self.label_weapon7 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon7.frame.grid(row=1, column=5, sticky=tk.W + tk.E, padx=5)
+        self.label_weapon8 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon8.frame.grid(row=2, column=5, sticky=tk.W + tk.E, padx=5)
+        self.label_weapon9 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon9.frame.grid(row=3, column=5, sticky=tk.W + tk.E, padx=5)
+        self.label_weapon10 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_weapon10.frame.grid(row=4, column=5, sticky=tk.W + tk.E, padx=5)
+
+        self.label_ded1 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded1.frame.grid(row=0, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_ded2 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded2.frame.grid(row=1, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_ded3 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded3.frame.grid(row=2, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_ded4 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded4.frame.grid(row=3, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_ded5 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded5.frame.grid(row=4, column=2, sticky=tk.W + tk.E, padx=5)
+        self.label_ded6 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded6.frame.grid(row=0, column=6, sticky=tk.W + tk.E, padx=5)
+        self.label_ded7 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded7.frame.grid(row=1, column=6, sticky=tk.W + tk.E, padx=5)
+        self.label_ded8 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded8.frame.grid(row=2, column=6, sticky=tk.W + tk.E, padx=5)
+        self.label_ded9 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded9.frame.grid(row=3, column=6, sticky=tk.W + tk.E, padx=5)
+        self.label_ded10 = btk.MyLabelStyle(self.frame_kills, "")
+        self.label_ded10.frame.grid(row=4, column=6, sticky=tk.W + tk.E, padx=5)
+
+        self.frame_kills.grid_columnconfigure(0, minsize=0.2 * 0.8 * sizex, weight=1)
+        self.frame_kills.grid_columnconfigure(1, minsize=0.09 * 0.8 * sizex, weight=1)
+        self.frame_kills.grid_columnconfigure(2, minsize=0.2 * 0.8 * sizex, weight=1)
+        self.frame_kills.grid_columnconfigure(3, minsize=0.02 * 0.8 * sizex, weight=1)
+        self.frame_kills.grid_columnconfigure(4, minsize=0.2 * 0.8 * sizex, weight=1)
+        self.frame_kills.grid_columnconfigure(5, minsize=0.09 * 0.8 * sizex, weight=1)
+        self.frame_kills.grid_columnconfigure(6, minsize=0.2 * 0.8 * sizex, weight=1)
+
+        self.frame_kills.grid_rowconfigure(0, minsize=30, weight=0)
+        self.frame_kills.grid_rowconfigure(1, minsize=30, weight=0)
+        self.frame_kills.grid_rowconfigure(2, minsize=30, weight=0)
+        self.frame_kills.grid_rowconfigure(3, minsize=30, weight=0)
+        self.frame_kills.grid_rowconfigure(4, minsize=30, weight=0)
+        self.frame_kills.grid_propagate(False)
+
         for i2 in range(1, 11):
             g.profile_links.update({getattr(self, "label_player" + str(i2)).frame: ""})
             if i2 < 6:
-                getattr(self, "label_player" + str(i2)).frame.config(cursor="hand2", anchor=tk.W)
+                getattr(self, "label_player" + str(i2)).frame.config(cursor="hand2", anchor=tk.W, fg="#00bfff")
             else:
-                getattr(self, "label_player" + str(i2)).frame.config(cursor="hand2", anchor=tk.E)
+                getattr(self, "label_player" + str(i2)).frame.config(cursor="hand2", anchor=tk.E, fg="#df2020")
             getattr(self, "label_player" + str(i2)).frame.bind("<Button-1>", lc_event1)
             getattr(self, "label_scorep" + str(i2)).frame.config(font=("", 12, ""))
+            getattr(self, "label_rank" + str(i2)).frame.config(fg="#aaff00")
 
-        self.window.grid_columnconfigure(0, minsize=0.04 * sizex, weight=1)
-        self.window.grid_columnconfigure(1, minsize=0.17 * sizex, weight=1)
-        self.window.grid_columnconfigure(2, minsize=0.07 * sizex, weight=1)
-        self.window.grid_columnconfigure(3, minsize=0.11 * sizex, weight=1)
-        self.window.grid_columnconfigure(4, minsize=0.02 * sizex, weight=1)
-        self.window.grid_columnconfigure(5, minsize=0.11 * sizex, weight=1)
-        self.window.grid_columnconfigure(6, minsize=0.07 * sizex, weight=1)
-        self.window.grid_columnconfigure(7, minsize=0.17 * sizex, weight=1)
-        self.window.grid_columnconfigure(8, minsize=0.04 * sizex, weight=1)  # 0.8
-        self.window.grid_columnconfigure(9, minsize=0.1 * sizex, weight=1)
-        self.window.grid_columnconfigure(10, minsize=0.1 * sizex, weight=1)
+        self.window.grid_columnconfigure(0, minsize=0.34 * sizex, weight=1)
+        self.window.grid_columnconfigure(1, minsize=0.31 * sizex, weight=1)
+        self.window.grid_columnconfigure(2, minsize=0.15 * sizex, weight=1)
+        self.window.grid_columnconfigure(3, minsize=0.1 * sizex, weight=1)
+        self.window.grid_columnconfigure(4, minsize=0.1 * sizex, weight=1)
         self.window.grid_propagate(False)
 
         # self.window.grid_rowconfigure(0, minsize=0.06 * sizey, weight=1)

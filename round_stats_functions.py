@@ -4,12 +4,16 @@ match_started = False
 round_current = 1
 team_score = {2: 0, 3: 0}
 max_players = 0
+kills_round_list = list()
 PLAYERS = dict()
 BOTS = dict()
 takeovers = dict()
-STATS = {"otherdata": {
-    "PFN": {}
-}}
+STATS = {
+    "otherdata": {
+        "kills": {},
+        "PFN": {}
+    }
+}
 RANK_STATS = dict()
 
 
@@ -34,7 +38,7 @@ class MyRoundStats:
 
 
 class MyPlayer:
-    def __init__(self, data=None, ui=False):
+    def __init__(self, data=None, ui=False, team=None):
         self.id = None
         self.eid = None
         self.name = None
@@ -45,13 +49,13 @@ class MyPlayer:
         self.a = 0
         # 2 = "T" // 3 = "CT"
         self.rank = None
-        self.start_team = None
+        self.start_team = team
         self.userinfo = None
         self.data = None
         if data:
             self.update(data, ui)
 
-    def update(self, data, ui=False):
+    def update(self, data, ui):
         if ui:
             self.userinfo = data
             self.id = data.user_id
@@ -62,17 +66,21 @@ class MyPlayer:
 
 
 def new_demo(data):
-    global match_started, round_current, team_score, max_players, PLAYERS, BOTS, takeovers, STATS
+    global match_started, round_current, team_score, max_players, PLAYERS, BOTS, takeovers, STATS, kills_round_list
     match_started = False
     round_current = 1
     team_score = {2: 0, 3: 0}
     max_players = 0
+    kills_round_list = list()
     PLAYERS = dict()
     BOTS = dict()
     takeovers = dict()
-    STATS = {"otherdata": {
-        "PFN": {}
-    }}
+    STATS = {
+        "otherdata": {
+            "kills": {},
+            "PFN": {}
+        }
+    }
     STATS["otherdata"].update({"map": data.map_name})
 
 
@@ -113,7 +121,7 @@ def player_team(data):
 
 
 def player_death(data):
-    global match_started, PLAYERS, BOTS, takeovers
+    global match_started, PLAYERS, BOTS, takeovers, STATS, round_current, kills_round_list
     if match_started:
         k = PLAYERS.get(data["attacker"])
         a = PLAYERS.get(data["assister"])
@@ -126,25 +134,44 @@ def player_death(data):
         dto = takeovers.get(data["userid"])
         # if round_current == 7:
         #     print(data)
+        # if not d:
+        #     temp = g.demo_stats._players_by_uid[data["userid"]]
+        #     randommm = 1
+        krl_d = d
+        if not d:
+            if not((max_players == 10 and round_current <= 15) or (max_players == 4 and round_current <= 8)):
+                df = 2 if df == 3 else 3
+            krl_d = MyPlayer(data=g.demo_stats._players_by_uid[data["userid"]], ui=True, team=df)
+            krl_d.name = f"BOT {krl_d.name}"
+        krl_k = k
+        if not k:
+            if not ((max_players == 10 and round_current <= 15) or (max_players == 4 and round_current <= 8)):
+                kf = 2 if kf == 3 else 3
+            if data["attacker"] == 0:
+                krl_k = krl_d
+            else:
+                krl_k = MyPlayer(data=g.demo_stats._players_by_uid[data["attacker"]], ui=True, team=kf)
+            krl_k.name = f"BOT {krl_k.name}"
+        kills_round_list.append([krl_k, a, krl_d, data])
         if data["assister"] and not data["assistedflash"]:
             if a and not ato:  # asd
-                PLAYERS[data["assister"]].a += 1
+                a.a += 1
                 # print("ass", d.userinfo.xuid, d.start_team, a.start_team, df, af)
                 if d and a.start_team and d.start_team and a.start_team == d.start_team:
-                    PLAYERS[data["assister"]].a -= 1
+                    a.a -= 1
                 elif not df and a.start_team and a.start_team == df:
-                    PLAYERS[data["assister"]].a -= 1
+                    a.a -= 1
         if k and not kto:
-            PLAYERS[data["attacker"]].k += 1
+            k.k += 1
         if d and not dto and data["weapon"] != "planted_c4":
-            PLAYERS[data["userid"]].d += 1
+            d.d += 1
         if d and not dto and data["userid"] == data["attacker"]:
-            PLAYERS[data["userid"]].k -= 2
+            d.k -= 2
         else:
             if k and not kto and d and k.start_team and d.start_team and k.start_team == d.start_team:
-                PLAYERS[data["attacker"]].k -= 2
+                k.k -= 2
             elif k and not kto and not df and k.start_team and k.start_team == df:
-                PLAYERS[data["attacker"]].k -= 2
+                k.k -= 2
 
 
 def player_spawn(data):
@@ -175,7 +202,7 @@ def player_spawn(data):
                     rp.start_team = 3
                 elif data["teamnum"] == 3:
                     rp.start_team = 2
-    # print(">>", _BOTS.get(data["userid"]), rp.start_team if rp else None)
+    # print(">>", BOTS.get(data["userid"]), rp.start_team if rp else None)
     # print(".................................................")
 
 
@@ -222,17 +249,24 @@ def round_end(data):
 
 
 def round_officially_ended(data):
-    global match_started, STATS, round_current, team_score, PLAYERS, takeovers
+    global match_started, STATS, round_current, team_score, PLAYERS, takeovers, kills_round_list
     if match_started:
         STATS.update({round_current: MyRoundStats(team_score[2], team_score[3], PLAYERS)})
+        STATS["otherdata"]["kills"].update({round_current: kills_round_list})
         round_current += 1
+        kills_round_list = list()
         takeovers.clear()
     # print("ROUND {}..........................................................".format(round_current))
 
 
 def cmd_dem_stop(data):
-    global STATS, round_current, team_score, PLAYERS
+    global STATS, round_current, team_score, PLAYERS, max_players
     STATS.update({round_current: MyRoundStats(team_score[2], team_score[3], PLAYERS)})
+    STATS["otherdata"]["kills"].update({round_current: kills_round_list})
+    # if 0 < max_players < 4:
+    #     max_players = 4
+    # elif 6 < max_players < 10:
+    #     max_players = 10
     STATS["otherdata"].update({"nrplayers": max_players})
 
 

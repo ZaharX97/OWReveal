@@ -13,3 +13,7 @@ if __name__ == "__main__":
     f.import_settings()
 
     g.app.window.mainloop()
+
+# todo
+# new function to count stats in warmup
+# open profiles on click in kills frame
