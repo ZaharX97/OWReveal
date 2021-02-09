@@ -5,7 +5,7 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.1** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.1.1** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
   * added a way to see kills each round  
   * other small changes  
   

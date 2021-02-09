@@ -103,7 +103,8 @@ WEAPON_TRANSLATE = {
     "mp9": "mp9",
     "p90": "p90",
     "ump45": "ump45",
-    "world": "world"
+    "world": "world",
+    "inferno": "fire"
 }
 
 NAME_CUTOUT_MAIN = 16
@@ -112,7 +113,7 @@ NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 RANK_TRANSLATE = RANK_TRANSLATE_2
 
-VERSION = "4.1"
+VERSION = "4.1.1"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 
