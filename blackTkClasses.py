@@ -24,10 +24,10 @@ class MyOptMenuStyle:
         self.text = tk.StringVar()
         self.text.set(label)
         self.btn = tk.OptionMenu(root, self.text, "")
-        self.btn.config(anchor=tk.W, font=("arial", 10, ""), fg="white", bg="#101010", activebackground="#404040")
+        self.btn.config(anchor=tk.W, font=("arial", 10, ""), fg="white", bg="#101010", activebackground="#404040", bd=0, highlightbackground="#404040")
         self.menu = self.btn["menu"]
         self.update(options)
-        self.menu.config(font=("arial", 10, ""), fg="white", bg="#101010", activebackground="#404040")
+        self.menu.config(font=("arial", 10, ""), fg="white", bg="#101010", activebackground="#404040", bd=0, activeborderwidth=2)
 
     def _cmd_new(self, cmd, value):
         self.text.set(value)

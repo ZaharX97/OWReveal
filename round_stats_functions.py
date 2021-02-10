@@ -122,8 +122,6 @@ def player_team(data):
 
 def player_death(data):
     global match_started, PLAYERS, BOTS, takeovers, STATS, round_current, kills_round_list
-    if not g.WEAPON_TRANSLATE.get(data["weapon"]):
-        print(data)
     if match_started:
         k = PLAYERS.get(data["attacker"])
         a = PLAYERS.get(data["assister"])
@@ -152,6 +150,8 @@ def player_death(data):
             krl_k.name = f"BOT {krl_k.name}"
         if data["weapon"].find("knife") != -1:
             data["weapon"] = "knife"
+        if not g.WEAPON_TRANSLATE.get(data["weapon"]):
+            print(data)
         kills_round_list.append([krl_k, a, krl_d, data])
         if data["assister"] and not data["assistedflash"]:
             if a and not ato:  # asd

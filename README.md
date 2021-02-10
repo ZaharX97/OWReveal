@@ -1,13 +1,15 @@
+
 # OWReveal
 CSGO Overwatch revealer by sniffing packets
 
-![Main window](https://i.imgur.com/MaP0Fut.png) ![WatchList](https://i.imgur.com/bh06N3I.png)
+![Main window](https://i.imgur.com/lulwtDh.png) ![WatchList](https://i.imgur.com/LEablcb.png)
 
 ## Latest Version:  
   
-* v**4.1.2** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
-  * added a way to see kills each round  
-  * other small changes  
+* v**4.2** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+  * fixed error when kills were made with knives or other unknown weapons  
+  * added icons (for application, in windows taskbar, rank icons in app)  
+  * added buttons to go to prev/next round  
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -20,7 +22,12 @@ CSGO Overwatch revealer by sniffing packets
 2. Install pyinstaller
 3. Download this project and extract into a folder
 4. Open cmd/powershell in that folder
-5. > pyinstaller --icon app_icon.ico --onefile --noconsole main.py
+5.
+a) For app version >= 4.2 use  
+> pyinstaller --icon app_icon.ico --clean --add-data "resources/app_icon.png;resources" --add-data "resources/csgo_rank_icons/*.png;resources/csgo_rank_icons" --onefile --noconsole main.py
+> 
+b) For app version <= 4.1.x use  
+> pyinstaller --icon app_icon.ico --onefile --noconsole main.py
 6. The .exe should be in /dist/ folder
 
 ## Q&A
@@ -45,6 +52,10 @@ Also when you select a round, it shows the stats from the end of that round.
 **A**: I wrote this using python 3.8.1  
   
 ## Older Versions: 
+
+* v**4.1.2** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.1.2)  
+  * added a way to see kills each round  
+  * other small changes  
   
 * v**4.0.1** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.0.1)  
   * added more info (rank, server)  

@@ -8,10 +8,11 @@ settings_dict = {
     "browser_dl": False,
     "rename_dl": False,
     "auto_dl": True,
-    "delete_after": True,
-    "rank_doodles": False
+    "delete_after": True
 }
-RANK_TRANSLATE_1 = {
+RANK_TRANSLATE_IMG = None
+RANK_TRANSLATE_WL = None
+RANK_TRANSLATE_TEXT = {
     0: "N/A",
     1: "S1",
     2: "S2",
@@ -32,27 +33,27 @@ RANK_TRANSLATE_1 = {
     17: "SMFC",
     18: "Global",
 }
-RANK_TRANSLATE_2 = {
-    0: "⚠",
-    1: ">",
-    2: ">>",
-    3: ">>>",
-    4: ">>>>",
-    5: "(>>>>",
-    6: "(*>>>>",
-    7: "(*)",
-    8: "(**)",
-    9: "(***)",
-    10: "(****)",
-    11: "︻╦╤─",
-    12: "(︻╦╤─)",
-    13: "*︻╦╤─*",
-    14: "🌟",
-    15: "*🦅*",
-    16: "(*🦅*)",
-    17: "*⚞◯⚟*",
-    18: "(*☢*)",
-}
+# RANK_TRANSLATE_2 = {
+#     0: "⚠",
+#     1: ">",
+#     2: ">>",
+#     3: ">>>",
+#     4: ">>>>",
+#     5: "(>>>>",
+#     6: "(*>>>>",
+#     7: "(*)",
+#     8: "(**)",
+#     9: "(***)",
+#     10: "(****)",
+#     11: "︻╦╤─",
+#     12: "(︻╦╤─)",
+#     13: "*︻╦╤─*",
+#     14: "🌟",
+#     15: "*🦅*",
+#     16: "(*🦅*)",
+#     17: "*⚞◯⚟*",
+#     18: "(*☢*)",
+# }
 MODE_TRANSLATE = {
     0: "Unknown",
     6: "Competitive",
@@ -85,6 +86,7 @@ WEAPON_TRANSLATE = {
     "revolver": "r8",
     "tec9": "tec9",
     "usp_silencer": "usp",
+    "usp_silencer_off": "usp",
     "ak47": "ak47",
     "aug": "aug",
     "awp": "awp",
@@ -93,6 +95,7 @@ WEAPON_TRANSLATE = {
     "galilar": "galil",
     "m4a1": "m4a4",
     "m4a1_silencer": "m4a1",
+    "m4a1_silencer_off": "m4a1",
     "scar20": "scar20",
     "sg556": "sg556",
     "ssg08": "scout",
@@ -111,9 +114,8 @@ NAME_CUTOUT_MAIN = 16
 NAME_CUTOUT_WATCHLIST = 22
 NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
-RANK_TRANSLATE = RANK_TRANSLATE_2
 
-VERSION = "4.1.1"
+VERSION = "4.2"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 
@@ -121,7 +123,8 @@ list_links = list()
 profile_links = dict()
 stats_active = True
 browser_path = None
-exec_path = None
+path_exec_folder = None
+path_resources = None
 last_server = None
 demo_stats = None
 demo_nrplayers = 10

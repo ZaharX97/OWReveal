@@ -1,4 +1,5 @@
 import threading as t
+import tkinter as tk
 
 import myglobals as g
 import functions as f
@@ -12,8 +13,9 @@ if __name__ == "__main__":
 
     f.import_settings()
 
+    g.app.window.iconphoto(True, tk.PhotoImage(file=fr"{g.path_resources}resources\app_icon.png"))
     g.app.window.mainloop()
 
 # todo
 # new function to count stats in warmup
-# open profiles on click in kills frame
+# add some buttons for previous, next round

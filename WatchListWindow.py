@@ -3,6 +3,9 @@ import tkinter as tk
 import subprocess as sp
 import webbrowser as web
 
+import PIL.Image as pili
+import PIL.ImageTk as piltk
+
 import myglobals as g
 import functions as f
 import AlertWindow as AW
@@ -88,7 +91,8 @@ class WatchListWindow:
                         self.watchlist[i2]["name"].frame.config(bg="#ff6666")
                     else:
                         self.watchlist[i2]["name"].frame.config(bg="#101010")
-            self.watchlist[i2]["rank"].text.set(g.RANK_TRANSLATE[player.rank] if player else "")
+            # self.watchlist[i2]["rank"].text.set(g.RANK_TRANSLATE_TEXT[player.rank] if player else "")
+            self.watchlist[i2]["rank"].frame.config(image=g.RANK_TRANSLATE_WL[player.rank] if player else g.RANK_TRANSLATE_WL[0])
             self.watchlist[i2]["kad"].text.set(player.kad if player else "TO REMOVE")
             self.watchlist[i2]["map"].text.set(player.map if player else "TO REMOVE")
             if len(self.watchlist[i2]["map"].text.get()) > 15:
@@ -108,7 +112,8 @@ class WatchListWindow:
                 self.watchlist[i2]["nr"].text.set("")
                 self.watchlist[i2]["name"].text.set("")
                 self.watchlist[i2]["name"].frame.config(bg="#101010")
-                self.watchlist[i2]["rank"].text.set("")
+                # self.watchlist[i2]["rank"].text.set("")
+                self.watchlist[i2]["rank"].frame.config(image="")
                 self.watchlist[i2]["kad"].text.set("")
                 self.watchlist[i2]["map"].text.set("")
                 self.watchlist[i2]["date"].text.set("")
@@ -146,7 +151,7 @@ class WatchListWindow:
         self.rfile.seek(0, 0)
         self.findex = 1
         try:
-            wfile = open(g.exec_path + "watchlist.temp", "w", encoding="utf-8")
+            wfile = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8")
         except Exception:
             AW.MyAlertWindow(self.window, "Cannot update WatchList")
             return
@@ -169,8 +174,8 @@ class WatchListWindow:
         wfile.close()
         self.rfile.close()
         try:
-            os.remove(g.exec_path + "watchlist")
-            os.rename(g.exec_path + "watchlist.temp", g.exec_path + "watchlist")
+            os.remove(g.path_exec_folder + "watchlist")
+            os.rename(g.path_exec_folder + "watchlist.temp", g.path_exec_folder + "watchlist")
         except PermissionError:
             AW.MyAlertWindow(self.window, "Cannot replace watchlist!\nwatchlist.temp was created as the newer "
                                           "version\nRestart the app or replace it manually")
@@ -206,11 +211,11 @@ class WatchListWindow:
 
     def __init__(self, root):
         try:
-            self.rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
+            self.rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
         except FileNotFoundError:
-            tempwrite = open(g.exec_path + "watchlist", "w", encoding="utf-8")
+            tempwrite = open(g.path_exec_folder + "watchlist", "w", encoding="utf-8")
             tempwrite.close()
-            self.rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
+            self.rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
         self.findex = 1
         self._lastpage = 0
         self._maxpages = 0
@@ -223,7 +228,7 @@ class WatchListWindow:
         self.window = tk.Toplevel(root)
         self.window.transient(root)
         self.window.title("WatchList")
-        self.window.minsize(805, 430)
+        self.window.minsize(805, 465)
         # self.window.resizable(False, False)
         sizex = self.window.minsize()[0]
         self.window.config(bg="#101010")
@@ -314,7 +319,19 @@ class WatchListWindow:
         frame.grid_columnconfigure(5, minsize=0.14 * sizex, weight=1)
         frame.grid_columnconfigure(6, minsize=0.14 * sizex, weight=1)
         frame.grid_columnconfigure(7, minsize=0.2 * sizex, weight=1)
-        # self.sf.inner.grid_propagate(False)
+
+        frame.grid_rowconfigure(0, minsize=15, weight=0)
+        frame.grid_rowconfigure(1, minsize=15, weight=0)
+        frame.grid_rowconfigure(2, minsize=15, weight=0)
+        frame.grid_rowconfigure(3, minsize=15, weight=0)
+        frame.grid_rowconfigure(4, minsize=15, weight=0)
+        frame.grid_rowconfigure(5, minsize=15, weight=0)
+        frame.grid_rowconfigure(6, minsize=15, weight=0)
+        frame.grid_rowconfigure(7, minsize=15, weight=0)
+        frame.grid_rowconfigure(8, minsize=15, weight=0)
+        frame.grid_rowconfigure(9, minsize=15, weight=0)
+        frame.grid_rowconfigure(10, minsize=15, weight=0)
+        frame.grid_propagate(False)
         # self.frame.update_idletasks()
         frame.pack(fill=tk.BOTH)
         # frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
@@ -369,6 +386,51 @@ class WatchListWindow:
         self.percent.frame.grid(row=2, column=0, sticky=tk.W)
         self.btn_lastpage.text.set(">> " + str(self._maxpages))
         frame.pack(side=tk.RIGHT)
+        self.window.update_idletasks()
+
+        # takes half a second every time you open the wl and the app is white during that so i'll just use the main ones
+        # label_size = (self.watchlist[0]["rank"].frame.winfo_width(), self.watchlist[0]["rank"].frame.winfo_height())
+        # g.RANK_TRANSLATE_WL = {
+        #     0: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\0.png").resize(label_size, pili.ANTIALIAS)),
+        #     1: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\1.png").resize(label_size, pili.ANTIALIAS)),
+        #     2: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\2.png").resize(label_size, pili.ANTIALIAS)),
+        #     3: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\3.png").resize(label_size, pili.ANTIALIAS)),
+        #     4: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\4.png").resize(label_size, pili.ANTIALIAS)),
+        #     5: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\5.png").resize(label_size, pili.ANTIALIAS)),
+        #     6: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\6.png").resize(label_size, pili.ANTIALIAS)),
+        #     7: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\7.png").resize(label_size, pili.ANTIALIAS)),
+        #     8: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\8.png").resize(label_size, pili.ANTIALIAS)),
+        #     9: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\9.png").resize(label_size, pili.ANTIALIAS)),
+        #     10: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\10.png").resize(label_size, pili.ANTIALIAS)),
+        #     11: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\11.png").resize(label_size, pili.ANTIALIAS)),
+        #     12: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\12.png").resize(label_size, pili.ANTIALIAS)),
+        #     13: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\13.png").resize(label_size, pili.ANTIALIAS)),
+        #     14: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\14.png").resize(label_size, pili.ANTIALIAS)),
+        #     15: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\15.png").resize(label_size, pili.ANTIALIAS)),
+        #     16: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\16.png").resize(label_size, pili.ANTIALIAS)),
+        #     17: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\17.png").resize(label_size, pili.ANTIALIAS)),
+        #     18: piltk.PhotoImage(
+        #         pili.open(fr"{g.exec_path}resources\csgo_rank_icons\18.png").resize(label_size, pili.ANTIALIAS)),
+        # }
+
         self._update_page(self._maxpages)
         self.window.pack_propagate(False)
         self.window.update_idletasks()

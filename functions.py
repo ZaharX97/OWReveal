@@ -1,4 +1,5 @@
 import os
+import sys
 import inspect as i
 import shutil
 import datetime as dt
@@ -13,6 +14,8 @@ import tkinter as tk
 import scapy.all as scpa
 import scapy.layers.http as scplh
 import requests as req
+import PIL.Image as pili
+import PIL.ImageTk as piltk
 
 import myglobals as g
 import AlertWindow as AW
@@ -96,13 +99,16 @@ def find_browser_path():
         return None
 
 
-def find_file_path(exe=None):
-    temp = os.path.abspath(i.getsourcefile(lambda: 0))
-    temp = temp[:temp.rfind("\\")]
-    if exe is not None:
-        return temp + "\\"
-    temp = temp + r"\replays" + "\\"
-    return temp
+def find_file_path(exe=False):
+    if getattr(sys, "frozen", False):
+        temp = sys.executable
+        g.path_resources = sys._MEIPASS + "\\"
+        return os.path.dirname(temp) + "\\" if exe else os.path.dirname(temp) + r"\replays" + "\\"
+    else:
+        temp = os.path.abspath(i.getsourcefile(lambda: 0))
+        temp = temp[:temp.rfind("\\")]
+        g.path_resources = temp + "\\"
+        return temp + "\\" if exe else temp + r"\replays" + "\\"
 
 
 def get_interfaces():
@@ -146,7 +152,7 @@ def check_npcap(window):
 def save_settings():
     # global g.settings_dict, g.exec_path
     try:
-        file = open(g.exec_path + "ow_config", "w")
+        file = open(g.path_exec_folder + "ow_config", "w")
     except Exception:
         AW.MyAlertWindow(g.app.window, "Error saving settings to file")
         return
@@ -158,14 +164,16 @@ def save_settings():
 def import_settings():
     # global g.settings_dict, g.exec_path
     g.browser_path = find_browser_path()
-    g.exec_path = find_file_path(True)
+    g.path_exec_folder = find_file_path(True)
     try:
-        file = open(g.exec_path + "ow_config", "r")
+        file = open(g.path_exec_folder + "ow_config", "r")
     except Exception:
         import_settings_extra()
         return
     for line in file:
         sett = line[2:line.find(",") - 1]
+        if g.settings_dict.get(sett) is None:
+            continue
         val = line[line.find(",") + 2:-2]
         if sett == "dl_loc":
             val = val.replace(r"\\", "\\")
@@ -184,7 +192,31 @@ def import_settings():
 def import_settings_extra():
     if not len(g.settings_dict["dl_loc"]):
         g.settings_dict["dl_loc"] = find_file_path()
-    g.RANK_TRANSLATE = g.RANK_TRANSLATE_2 if g.settings_dict["rank_doodles"] else g.RANK_TRANSLATE_1
+    label_size = (g.app.label_rank1.frame.winfo_width(), g.app.label_rank1.frame.winfo_height())
+    g.RANK_TRANSLATE_IMG = {
+        0: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\0.png").resize(label_size, pili.ANTIALIAS)),
+        1: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\1.png").resize(label_size, pili.ANTIALIAS)),
+        2: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\2.png").resize(label_size, pili.ANTIALIAS)),
+        3: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\3.png").resize(label_size, pili.ANTIALIAS)),
+        4: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\4.png").resize(label_size, pili.ANTIALIAS)),
+        5: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\5.png").resize(label_size, pili.ANTIALIAS)),
+        6: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\6.png").resize(label_size, pili.ANTIALIAS)),
+        7: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\7.png").resize(label_size, pili.ANTIALIAS)),
+        8: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\8.png").resize(label_size, pili.ANTIALIAS)),
+        9: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\9.png").resize(label_size, pili.ANTIALIAS)),
+        10: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\10.png").resize(label_size, pili.ANTIALIAS)),
+        11: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\11.png").resize(label_size, pili.ANTIALIAS)),
+        12: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\12.png").resize(label_size, pili.ANTIALIAS)),
+        13: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\13.png").resize(label_size, pili.ANTIALIAS)),
+        14: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\14.png").resize(label_size, pili.ANTIALIAS)),
+        15: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\15.png").resize(label_size, pili.ANTIALIAS)),
+        16: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\16.png").resize(label_size, pili.ANTIALIAS)),
+        17: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\17.png").resize(label_size, pili.ANTIALIAS)),
+        18: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\18.png").resize(label_size, pili.ANTIALIAS)),
+    }
+    for i2 in range(1, 11):
+        getattr(g.app, "label_rank" + str(i2)).frame.config(image=g.RANK_TRANSLATE_IMG[0])
+    g.RANK_TRANSLATE_WL = g.RANK_TRANSLATE_IMG
 
 
 def download_from_link(link, button):
@@ -293,9 +325,9 @@ def analyze_demo(path, button):
         tempmap = tempmap[:tempmapidx]
     g.app.label4_map.text.set(tempmap)
     g.app.label5_server.text.set(g.last_server)
-    if len(tempmap) > 18:
+    if len(tempmap) > g.TEXT_CUTOUT_MAPSERV:
         g.app.label4_map.frame.config(anchor=tk.W)
-    if len(g.last_server) > 18:
+    if len(g.last_server) > g.TEXT_CUTOUT_MAPSERV:
         g.app.label5_server.frame.config(anchor=tk.W)
     # swapping player names for the one they used on first join
     for xuid, pfname in g.demo_stats["otherdata"]["PFN"].items():
@@ -304,6 +336,7 @@ def analyze_demo(path, button):
                 # print(f"{player.name} <=> {pfname}")
                 player.name = pfname
                 break
+    g.app.btn6_round.text.set(f"Round {len(g.demo_stats) - 1}")
     g.app.update_stats(len(g.demo_stats) - 1)
     button.text.set("Download DEMO")
 
@@ -366,8 +399,8 @@ def actual_check_vac():
     newpb = ""
     failed = 0
     try:
-        rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
-        wfile = open(g.exec_path + "watchlist.temp", "w", encoding="utf-8")
+        rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
+        wfile = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8")
     except Exception:
         AW.MyAlertWindow(g.app.window, "Error4 opening WatchList")
         return
@@ -403,8 +436,8 @@ def actual_check_vac():
     wfile.close()
     rfile.close()
     g.event_check_vac.wait(3)
-    os.remove(g.exec_path + "watchlist")
-    os.rename(g.exec_path + "watchlist.temp", g.exec_path + "watchlist")
+    os.remove(g.path_exec_folder + "watchlist")
+    os.rename(g.path_exec_folder + "watchlist.temp", g.path_exec_folder + "watchlist")
     text = "{} new bans.\n".format(newbans)
     text += newpb
     if failed > 0:
@@ -419,4 +452,4 @@ def analyze_progress(btn):
 
 
 def placeholder():
-    print("test")
+    print("test", g.app.window.winfo_width(), g.app.window.winfo_height())

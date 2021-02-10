@@ -46,7 +46,7 @@ class WatchStatsWindow:
         self.mode_box.box.delete(0, tk.END)
         for val in range(0, maxim):
             if val < length_ranks:
-                text = g.RANK_TRANSLATE[rank_list[val][0]] + " = " + str(round(rank_list[val][1] / nrplayers * 100, 2)) + "% (" + str(rank_list[val][1]) + ")"
+                text = g.RANK_TRANSLATE_TEXT[rank_list[val][0]] + " = " + str(round(rank_list[val][1] / nrplayers * 100, 2)) + "% (" + str(rank_list[val][1]) + ")"
                 self.rank_box.box.insert(tk.END, text)
                 # rank_list_text.append(text)
                 # label = btk.MyLabelStyle(self.stats_frame, text)
@@ -76,7 +76,7 @@ class WatchStatsWindow:
 
     def _check_more_stats(self):
         try:
-            rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
+            rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
         except:
             AW.MyAlertWindow(self.window, "Cannot read Watchlist")
             return

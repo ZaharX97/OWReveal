@@ -19,7 +19,6 @@ import blackTkClasses as btk
 
 class MainAppWindow:
     def start_stop(self):
-        # global g.thread_sniff
         if f.check_npcap(self) is False:
             return
         if self.btn1_interfaces.text.get() == "Select one interface":
@@ -41,10 +40,8 @@ class MainAppWindow:
             self.btn2_start.text.set("Start")
 
     def update_stats(self, stats=None):
-        # self.btn6_round.update([])
         self._reset_chekcs()
         if stats:
-            # self.label_map.text.set(g.demo_stats["map"])
             indext = 0
             indexct = 0
             if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
@@ -78,7 +75,8 @@ class MainAppWindow:
                     g.profile_links.update(
                         {getattr(self, "label_player" + str(indext)).frame: g.demo_stats[stats].pscore[
                             p].player.profile})
-                    getattr(self, "label_rank" + str(indext)).text.set(g.RANK_TRANSLATE[prank])
+                    # getattr(self, "label_rank" + str(indext)).text.set(g.RANK_TRANSLATE[prank])
+                    getattr(self, "label_rank" + str(indext)).frame.config(image=g.RANK_TRANSLATE_IMG[prank])
                     getattr(self, "label_scorep" + str(indext)).text.set(kda)
                     indext += 1
                 elif g.demo_stats[stats].pscore[p].player.start_team == 3:
@@ -91,16 +89,19 @@ class MainAppWindow:
                     g.profile_links.update(
                         {getattr(self, "label_player" + str(indexct)).frame: g.demo_stats[stats].pscore[
                             p].player.profile})
-                    getattr(self, "label_rank" + str(indexct)).text.set(g.RANK_TRANSLATE[prank])
+                    # getattr(self, "label_rank" + str(indexct)).text.set(g.RANK_TRANSLATE[prank])
+                    getattr(self, "label_rank" + str(indexct)).frame.config(image=g.RANK_TRANSLATE_IMG[prank])
                     getattr(self, "label_scorep" + str(indexct)).text.set(kda)
                     indexct += 1
             if g.demo_nrplayers == 4:
                 for p in range(3):
                     getattr(self, "label_player" + str(indext)).text.set("")
-                    getattr(self, "label_rank" + str(indext)).text.set("")
+                    # getattr(self, "label_rank" + str(indext)).text.set("")
+                    getattr(self, "label_rank" + str(indext)).frame.config(image="")
                     getattr(self, "label_scorep" + str(indext)).text.set("")
                     getattr(self, "label_player" + str(indexct)).text.set("")
-                    getattr(self, "label_rank" + str(indexct)).text.set("")
+                    # getattr(self, "label_rank" + str(indexct)).text.set("")
+                    getattr(self, "label_rank" + str(indexct)).frame.config(image="")
                     getattr(self, "label_scorep" + str(indexct)).text.set("")
                     getattr(self, "btn_rad" + str(indext)).btn.grid_remove()
                     getattr(self, "btn_rad" + str(indexct)).btn.grid_remove()
@@ -127,7 +128,7 @@ class MainAppWindow:
                 else:
                     getattr(self, f"label_atk{str(kills + 1)}").frame.config(anchor=tk.CENTER)
                 # data["weapon"] = "sawedoff"
-                getattr(self, "label_weapon{}".format(str(kills + 1))).text.set(g.WEAPON_TRANSLATE[data["weapon"]])
+                getattr(self, "label_weapon{}".format(str(kills + 1))).text.set(g.WEAPON_TRANSLATE.get(data["weapon"], "unknown"))
                 if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
                     color = "#00bfff" if ded.start_team == 3 else "#df2020"
                 else:
@@ -145,14 +146,15 @@ class MainAppWindow:
                 getattr(self, "label_ded{}".format(str(kills + 1))).text.set("")
         else:
             self.btn6_round.update([])
-            self.btn6_round.text.set("Select a round")
+            self.btn6_round.text.set("Round ??")
             # self.label_map.text.set("-")
             self.label_scorect.text.set(0)
             self.label_scoret.text.set(0)
             for p in range(1, 11):
                 g.profile_links.update({getattr(self, "label_player" + str(p)).frame: ""})
                 getattr(self, "label_player" + str(p)).text.set("???")
-                getattr(self, "label_rank" + str(p)).text.set("???")
+                # getattr(self, "label_rank" + str(p)).text.set("???")
+                getattr(self, "label_rank" + str(p)).frame.config(image=g.RANK_TRANSLATE_IMG[0])
                 getattr(self, "label_scorep" + str(p)).text.set("0 / 0 / 0")
                 getattr(self, "btn_rad" + str(p)).btn.grid()
                 if p > 5:
@@ -183,12 +185,12 @@ class MainAppWindow:
                 to_add.add(link)
         if len(to_add):
             try:
-                rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
+                rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
             except FileNotFoundError:
-                tempwrite = open(g.exec_path + "watchlist", "w", encoding="utf-8")
+                tempwrite = open(g.path_exec_folder + "watchlist", "w", encoding="utf-8")
                 tempwrite.close()
                 try:
-                    rfile = open(g.exec_path + "watchlist", "r", encoding="utf-8")
+                    rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
                 except:
                     AW.MyAlertWindow(self.window, "Error opening WatchList (read)")
                     return
@@ -206,7 +208,7 @@ class MainAppWindow:
             except Exception:
                 pass
             try:
-                wfile = open(g.exec_path + "watchlist", "a", encoding="utf-8")
+                wfile = open(g.path_exec_folder + "watchlist", "a", encoding="utf-8")
             except Exception:
                 AW.MyAlertWindow(self.window, "Error opening WatchList (append)")
                 return
@@ -256,6 +258,20 @@ class MainAppWindow:
             self.btn_toggle.text.set("Show Kills")
         g.stats_active = not g.stats_active
         self.window.update_idletasks()
+
+    def _prev_next_round(self, prev=False):
+        roundd = self.btn6_round.text.get()[6:]
+        try:
+            roundd = int(roundd)
+        except ValueError:
+            return
+        if prev and roundd > 1:
+            self.btn6_round.text.set(f"Round {roundd - 1}")
+            self.update_stats(roundd - 1)
+            return
+        if not prev and roundd < (len(g.demo_stats) - 1):
+            self.btn6_round.text.set(f"Round {roundd + 1}")
+            self.update_stats(roundd + 1)
 
     def __init__(self, title, sizex, sizey):
         self.window = tk.Tk()
@@ -307,8 +323,23 @@ class MainAppWindow:
         self.btn5_settings = btk.MyButtonStyle(self.window, "Settings", lambda: SW.SettingsWindow(self.window))
         self.btn5_settings.btn.grid(row=9, column=4, sticky=tk.W + tk.E, padx=5, pady=1)
 
-        self.btn6_round = btk.MyOptMenuStyle(self.window, "Select a round", [])
-        self.btn6_round.btn.grid(row=4, column=3, sticky=tk.W + tk.E, columnspan=2, pady=5, padx=5)
+        self.rounds_frame = tk.Frame(self.window, bg="#101010", bd=0, padx=5, pady=1)
+        self.rounds_frame.grid(row=4, column=3, sticky=tk.W + tk.E, columnspan=2)
+
+        btn = btk.MyButtonStyle(self.rounds_frame, "<", lambda: self._prev_next_round(True))
+        # btn.btn.config()
+        btn.btn.grid(row=0, column=0, sticky=tk.W + tk.E)
+        self.btn6_round = btk.MyOptMenuStyle(self.rounds_frame, "Round ??", [])
+        self.btn6_round.btn.config(width=1)
+        self.btn6_round.btn.grid(row=0, column=1, sticky=tk.W + tk.E)
+        btn = btk.MyButtonStyle(self.rounds_frame, ">", lambda: self._prev_next_round())
+        btn.btn.grid(row=0, column=2, sticky=tk.W + tk.E)
+        # btn.btn.config()
+
+        self.rounds_frame.grid_columnconfigure(0, minsize=0.15 * 0.2 * sizex, weight=1)
+        self.rounds_frame.grid_columnconfigure(1, minsize=0.6 * 0.2 * sizex, weight=1)
+        self.rounds_frame.grid_columnconfigure(2, minsize=0.15 * 0.2 * sizex, weight=1)
+        self.rounds_frame.grid_propagate(False)
 
         self.label4_map = btk.MyLabelStyle(self.window, "Map")
         self.label4_map.frame.config(font=("", 11, "bold"), fg="green")
@@ -351,7 +382,7 @@ class MainAppWindow:
         self.frame_scorehead.grid_columnconfigure(4, minsize=0.35 * 0.8 * sizex, weight=1)
 
         self.frame_stats = tk.Frame(self.window, bg="#101010", bd=0)  # width=sizex, height=20
-        self.frame_stats.grid(row=5, column=0, columnspan=3, rowspan=6, sticky=tk.NSEW)
+        self.frame_stats.grid(row=5, column=0, columnspan=3, rowspan=6, sticky=tk.NSEW, pady=2)
 
         self.label_player1 = btk.MyLabelStyle(self.frame_stats, "???")
         self.label_player1.frame.grid(row=0, column=1, sticky=tk.W + tk.E, padx=5)
@@ -374,25 +405,25 @@ class MainAppWindow:
         self.label_player10 = btk.MyLabelStyle(self.frame_stats, "???")
         self.label_player10.frame.grid(row=4, column=7, sticky=tk.W + tk.E, padx=5)
 
-        self.label_rank1 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank1 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank1.frame.grid(row=0, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank2 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank2 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank2.frame.grid(row=1, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank3 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank3 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank3.frame.grid(row=2, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank4 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank4 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank4.frame.grid(row=3, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank5 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank5 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank5.frame.grid(row=4, column=2, sticky=tk.W + tk.E, padx=5)
-        self.label_rank6 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank6 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank6.frame.grid(row=0, column=6, sticky=tk.W + tk.E, padx=5)
-        self.label_rank7 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank7 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank7.frame.grid(row=1, column=6, sticky=tk.W + tk.E, padx=5)
-        self.label_rank8 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank8 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank8.frame.grid(row=2, column=6, sticky=tk.W + tk.E, padx=5)
-        self.label_rank9 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank9 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank9.frame.grid(row=3, column=6, sticky=tk.W + tk.E, padx=5)
-        self.label_rank10 = btk.MyLabelStyle(self.frame_stats, "???")
+        self.label_rank10 = btk.MyLabelStyle(self.frame_stats, "")
         self.label_rank10.frame.grid(row=4, column=6, sticky=tk.W + tk.E, padx=5)
 
         def lc_event1(event):
@@ -468,15 +499,15 @@ class MainAppWindow:
         self.frame_stats.grid_columnconfigure(7, minsize=0.2125 * 0.8 * sizex, weight=1)
         self.frame_stats.grid_columnconfigure(8, minsize=0.05 * 0.8 * sizex, weight=1)
 
-        self.frame_stats.grid_rowconfigure(0, minsize=30, weight=0)
-        self.frame_stats.grid_rowconfigure(1, minsize=30, weight=0)
-        self.frame_stats.grid_rowconfigure(2, minsize=30, weight=0)
-        self.frame_stats.grid_rowconfigure(3, minsize=30, weight=0)
-        self.frame_stats.grid_rowconfigure(4, minsize=30, weight=0)
+        self.frame_stats.grid_rowconfigure(0, minsize=30, weight=1)
+        self.frame_stats.grid_rowconfigure(1, minsize=30, weight=1)
+        self.frame_stats.grid_rowconfigure(2, minsize=30, weight=1)
+        self.frame_stats.grid_rowconfigure(3, minsize=30, weight=1)
+        self.frame_stats.grid_rowconfigure(4, minsize=30, weight=1)
         self.frame_stats.grid_propagate(False)
 
         self.frame_kills = tk.Frame(self.window, bg="#101010", bd=0)  # width=sizex, height=20
-        self.frame_kills.grid(row=5, column=0, columnspan=3, rowspan=6, sticky=tk.NSEW)
+        self.frame_kills.grid(row=5, column=0, columnspan=3, rowspan=6, sticky=tk.NSEW, pady=2)
         self.frame_kills.grid_remove()
 
         self.label_atk1 = btk.MyLabelStyle(self.frame_kills, "")
@@ -550,11 +581,11 @@ class MainAppWindow:
         self.frame_kills.grid_columnconfigure(5, minsize=0.09 * 0.8 * sizex, weight=1)
         self.frame_kills.grid_columnconfigure(6, minsize=0.2 * 0.8 * sizex, weight=1)
 
-        self.frame_kills.grid_rowconfigure(0, minsize=30, weight=0)
-        self.frame_kills.grid_rowconfigure(1, minsize=30, weight=0)
-        self.frame_kills.grid_rowconfigure(2, minsize=30, weight=0)
-        self.frame_kills.grid_rowconfigure(3, minsize=30, weight=0)
-        self.frame_kills.grid_rowconfigure(4, minsize=30, weight=0)
+        self.frame_kills.grid_rowconfigure(0, minsize=30, weight=1)
+        self.frame_kills.grid_rowconfigure(1, minsize=30, weight=1)
+        self.frame_kills.grid_rowconfigure(2, minsize=30, weight=1)
+        self.frame_kills.grid_rowconfigure(3, minsize=30, weight=1)
+        self.frame_kills.grid_rowconfigure(4, minsize=30, weight=1)
         self.frame_kills.grid_propagate(False)
 
         for i2 in range(1, 11):
@@ -579,11 +610,11 @@ class MainAppWindow:
         # self.window.grid_rowconfigure(2, minsize=0.1 * sizey, weight=1)
         # self.window.grid_rowconfigure(3, minsize=0.05 * sizey, weight=1)
         # self.window.grid_rowconfigure(4, minsize=0.1 * sizey, weight=1)
-        self.window.grid_rowconfigure(5, minsize=30, weight=0)
-        self.window.grid_rowconfigure(6, minsize=30, weight=0)
-        self.window.grid_rowconfigure(7, minsize=30, weight=0)
-        self.window.grid_rowconfigure(8, minsize=30, weight=0)
-        self.window.grid_rowconfigure(9, minsize=30, weight=0)
+        self.window.grid_rowconfigure(5, minsize=30, weight=1)
+        self.window.grid_rowconfigure(6, minsize=30, weight=1)
+        self.window.grid_rowconfigure(7, minsize=30, weight=1)
+        self.window.grid_rowconfigure(8, minsize=30, weight=1)
+        self.window.grid_rowconfigure(9, minsize=30, weight=1)
         self.window.update_idletasks()
 
         new_ver_thread = t.Thread(target=f.check_new_version)
