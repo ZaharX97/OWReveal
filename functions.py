@@ -409,7 +409,7 @@ def actual_check_vac():
         if player.banned == "Y":
             wfile.write(player.ret_string())
             continue
-        r = req.get(player.link)
+        r = req.get(player.link + "?l=english")
         if r.status_code == req.codes.ok:
             i3 = r.content.find(b" day(s) since last ban")
             if i3 == -1:
