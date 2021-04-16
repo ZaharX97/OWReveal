@@ -6,7 +6,8 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.2** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.2.1** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+  * fixed [issue #4](https://github.com/ZaharX97/OWReveal/issues/4)
   * fixed error when kills were made with knives or other unknown weapons  
   * added icons (for application, in windows taskbar, rank icons in app)  
   * added buttons to go to prev/next round  
