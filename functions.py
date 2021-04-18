@@ -390,7 +390,7 @@ def check_vac(window):
     window.close_and_update()
     g.thread_check_vac = t.Thread(target=actual_check_vac, daemon=True)
     g.thread_check_vac.start()
-    AW.MyAlertWindow(g.app.window, "Started checking for new VAC bans\n1 player / sec")
+    AW.MyAlertWindow(g.app.window, "Started checking for new VAC bans\n1 player / sec", "VAC check")
 
 
 def actual_check_vac():
@@ -398,6 +398,8 @@ def actual_check_vac():
     newbans = 0
     newpb = ""
     failed = 0
+    failedpb = ""
+    pnumber = 0
     try:
         rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
         wfile = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8")
@@ -406,6 +408,7 @@ def actual_check_vac():
         return
     for line in rfile:
         player = WP.MyWatchPlayer(line)
+        pnumber += 1
         if player.banned == "Y":
             wfile.write(player.ret_string())
             continue
@@ -427,10 +430,12 @@ def actual_check_vac():
             if days in (0, 1) or days <= delta:
                 newbans += 1
                 player.banned = "Y"
-                newpb += player.name + "\n"
+                newpbtemp = f"{' '*5}#{str(pnumber)}: {player.name}"
+                newpb += newpbtemp.ljust(50) + "\n"
             wfile.write(player.ret_string())
         else:
             failed += 1
+            failedpb += f"#{str(pnumber)} / "
             wfile.write(player.ret_string())
         g.event_check_vac.wait(1)
     wfile.close()
@@ -441,8 +446,8 @@ def actual_check_vac():
     text = "{} new bans.\n".format(newbans)
     text += newpb
     if failed > 0:
-        text += "Failed to check {} players".format(failed)
-    AW.MyAlertWindow(g.app.window, text)
+        text += f"Failed to check {failed} players: {failedpb}"
+    AW.MyAlertWindow(g.app.window, text, "VAC check")
 
 
 def analyze_progress(btn):

@@ -5,10 +5,10 @@ import blackTkClasses as btk
 
 
 class MyAlertWindow:
-    def __init__(self, root, message):
+    def __init__(self, root, message, title="error"):
         self.window = tk.Toplevel(root)
         self.window.transient(root)
-        self.window.title("error")
+        self.window.title(title)
         self.window.minsize(100, 50)
         self.window.resizable(False, False)
         self.window.attributes("-topmost")
