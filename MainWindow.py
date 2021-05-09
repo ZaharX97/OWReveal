@@ -42,22 +42,20 @@ class MainAppWindow:
     def update_stats(self, stats=None):
         self._reset_chekcs()
         if stats:
-            indext = 0
-            indexct = 0
-            if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
+            indext = 6
+            indexct = 1
+            if (g.demo_mode == 6 and (stats <= 15 or (stats > 30 and stats % 6 in {1, 2, 3}))) or (g.demo_mode == 7 and stats <= 8):
                 self.label_scorect.text.set(g.demo_stats[stats].score_team3)
                 self.label_scoret.text.set(g.demo_stats[stats].score_team2)
-                indext = 6
-                indexct = 1
+                # indext = 6
+                # indexct = 1
             else:
                 self.label_scorect.text.set(g.demo_stats[stats].score_team2)
                 self.label_scoret.text.set(g.demo_stats[stats].score_team3)
-                indext = 1
-                indexct = 6
-            if indext == 0:
-                AW.MyAlertWindow(g.app.window, "error reading players, max= {}".format(g.demo_nrplayers))
-                return
-            for p in range(g.demo_nrplayers):
+                # indext = 1
+                # indexct = 6
+            for p in range(len(g.demo_stats[stats].pscore)):
+                # test = g.demo_stats
                 pname = g.demo_stats[stats].pscore[p].player.name
                 prank = g.demo_stats[stats].pscore[p].player.rank
                 # pname = "alongassstringtoseehowplayerswithlongnameslook"
@@ -65,35 +63,58 @@ class MainAppWindow:
                 kda = "{} / {} / {}".format(g.demo_stats[stats].pscore[p].k, g.demo_stats[stats].pscore[p].a,
                                             g.demo_stats[stats].pscore[p].d)
                 # kda = "66 / 66 / 66"
-                if g.demo_stats[stats].pscore[p].player.start_team == 2:
-                    if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
-                        if len(pname) >= g.NAME_CUTOUT_MAIN:
-                            getattr(self, "label_player" + str(indext)).frame.config(anchor=tk.W)
-                        else:
-                            getattr(self, "label_player" + str(indext)).frame.config(anchor=tk.E)
-                    getattr(self, "label_player" + str(indext)).text.set(pname)
-                    g.profile_links.update(
-                        {getattr(self, "label_player" + str(indext)).frame: g.demo_stats[stats].pscore[
-                            p].player.profile})
-                    # getattr(self, "label_rank" + str(indext)).text.set(g.RANK_TRANSLATE[prank])
-                    getattr(self, "label_rank" + str(indext)).frame.config(image=g.RANK_TRANSLATE_IMG[prank])
-                    getattr(self, "label_scorep" + str(indext)).text.set(kda)
+                if g.demo_stats[stats].pscore[p].ttr == 2:
+                    xxx = g.demo_stats
+                    index_to_use = indext
+                    xxxxx = 2
+                    if len(pname) >= g.NAME_CUTOUT_MAIN:
+                        getattr(self, "label_player" + str(index_to_use)).frame.config(anchor=tk.W)
+                    else:
+                        getattr(self, "label_player" + str(index_to_use)).frame.config(anchor=tk.E)
                     indext += 1
-                elif g.demo_stats[stats].pscore[p].player.start_team == 3:
-                    if (g.demo_nrplayers == 10 and stats > 15) or (g.demo_nrplayers == 4 and stats > 8):
-                        if len(pname) >= g.NAME_CUTOUT_MAIN:
-                            getattr(self, "label_player" + str(indexct)).frame.config(anchor=tk.W)
-                        else:
-                            getattr(self, "label_player" + str(indexct)).frame.config(anchor=tk.E)
-                    getattr(self, "label_player" + str(indexct)).text.set(pname)
-                    g.profile_links.update(
-                        {getattr(self, "label_player" + str(indexct)).frame: g.demo_stats[stats].pscore[
-                            p].player.profile})
-                    # getattr(self, "label_rank" + str(indexct)).text.set(g.RANK_TRANSLATE[prank])
-                    getattr(self, "label_rank" + str(indexct)).frame.config(image=g.RANK_TRANSLATE_IMG[prank])
-                    getattr(self, "label_scorep" + str(indexct)).text.set(kda)
+                elif g.demo_stats[stats].pscore[p].ttr == 3:
+                    index_to_use = indexct
                     indexct += 1
-            if g.demo_nrplayers == 4:
+                getattr(self, "label_player" + str(index_to_use)).text.set(pname)
+                g.profile_links.update(
+                    {getattr(self, "label_player" + str(index_to_use)).frame: g.demo_stats[stats].pscore[
+                        p].player.profile})
+                # getattr(self, "label_rank" + str(index_to_use)).text.set(g.RANK_TRANSLATE[prank])
+                getattr(self, "label_rank" + str(index_to_use)).frame.config(image=g.RANK_TRANSLATE_IMG[prank])
+                getattr(self, "label_scorep" + str(index_to_use)).text.set(kda)
+                getattr(self, "btn_rad" + str(index_to_use)).btn.grid()
+            if g.demo_mode == 6 and (indext % 5 != 1 or indexct % 5 != 1):
+                while indext % 5 != 1 or indexct % 5 != 1:
+                    if indext % 5 != 1:
+                        getattr(self, "label_player" + str(indext)).text.set("")
+                        # getattr(self, "label_rank" + str(indext)).text.set("")
+                        getattr(self, "label_rank" + str(indext)).frame.config(image="")
+                        getattr(self, "label_scorep" + str(indext)).text.set("")
+                        getattr(self, "btn_rad" + str(indext)).btn.grid_remove()
+                        indext += 1
+                    if indexct % 5 != 1:
+                        getattr(self, "label_player" + str(indexct)).text.set("")
+                        # getattr(self, "label_rank" + str(indexct)).text.set("")
+                        getattr(self, "label_rank" + str(indexct)).frame.config(image="")
+                        getattr(self, "label_scorep" + str(indexct)).text.set("")
+                        getattr(self, "btn_rad" + str(indexct)).btn.grid_remove()
+                        indexct += 1
+            elif g.demo_mode == 7 and (indext % 5 != 3 or indexct % 5 != 3):
+                while indext % 5 != 3 or indexct % 5 != 3:
+                    if indext % 5 != 3:
+                        getattr(self, "label_player" + str(indext)).text.set("")
+                        # getattr(self, "label_rank" + str(indext)).text.set("")
+                        getattr(self, "label_rank" + str(indext)).frame.config(image="")
+                        getattr(self, "label_scorep" + str(indext)).text.set("")
+                        indext += 1
+                    if indexct % 5 != 3:
+                        getattr(self, "label_player" + str(indexct)).text.set("")
+                        # getattr(self, "label_rank" + str(indexct)).text.set("")
+                        getattr(self, "label_rank" + str(indexct)).frame.config(image="")
+                        getattr(self, "label_scorep" + str(indexct)).text.set("")
+                        indexct += 1
+            if g.demo_mode == 7 and self.after_reset is True:
+                self.after_reset = False
                 for p in range(3):
                     getattr(self, "label_player" + str(indext)).text.set("")
                     # getattr(self, "label_rank" + str(indext)).text.set("")
@@ -117,7 +138,7 @@ class MainAppWindow:
                 # print(data)
                 # T = fg="#df2020" // CT = fg="#00bfff"
                 # 2 = "T" // 3 = "CT"
-                if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
+                if (g.demo_mode == 6 and stats <= 15) or (g.demo_mode == 7 and stats <= 8):
                     color = "#00bfff" if atk.start_team == 3 else "#df2020"
                 else:
                     color = "#00bfff" if atk.start_team == 2 else "#df2020"
@@ -129,7 +150,7 @@ class MainAppWindow:
                     getattr(self, f"label_atk{str(kills + 1)}").frame.config(anchor=tk.CENTER)
                 # data["weapon"] = "sawedoff"
                 getattr(self, "label_weapon{}".format(str(kills + 1))).text.set(g.WEAPON_TRANSLATE.get(data["weapon"], "unknown"))
-                if (g.demo_nrplayers == 10 and stats <= 15) or (g.demo_nrplayers == 4 and stats <= 8):
+                if (g.demo_mode == 6 and stats <= 15) or (g.demo_mode == 7 and stats <= 8):
                     color = "#00bfff" if ded.start_team == 3 else "#df2020"
                 else:
                     color = "#00bfff" if ded.start_team == 2 else "#df2020"
@@ -166,6 +187,7 @@ class MainAppWindow:
             self.label4_map.frame.config(anchor=tk.CENTER)
             self.label5_server.text.set("Server")
             self.label5_server.frame.config(anchor=tk.CENTER)
+            self.after_reset = True
         self.window.update_idletasks()
 
     def _reset_chekcs(self):
@@ -220,7 +242,7 @@ class MainAppWindow:
                 if player.player.profile in to_add:
                     name = player.player.name
                     rank = player.player.rank
-                    mode = 6 if g.demo_nrplayers == 10 else 7
+                    mode = g.demo_mode
                     link = player.player.profile[player.player.profile.rfind("/") + 1:]
                     # if not len(name):
                     #     name = g.demo_stats["otherdata"]["PFN"][link]
@@ -274,6 +296,7 @@ class MainAppWindow:
             self.update_stats(roundd + 1)
 
     def __init__(self, title, sizex, sizey):
+        self.after_reset = False
         self.window = tk.Tk()
         self.window.title(title)
         self.window.minsize(sizex, sizey)

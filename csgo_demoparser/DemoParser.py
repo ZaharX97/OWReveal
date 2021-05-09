@@ -24,10 +24,10 @@ class DemoParser:
         self._ut_set.add("userinfo")
         self._ent = ent.upper()
         if self._ent != "NONE":
-            self._ut_set.add("instancebaseline")
             self.subscribe_to_event("packet_svc_PacketEntities", self._mypkt_svc_PacketEntities)
+            self._ut_set.add("instancebaseline")
+            self._ent_set = set()
             if self._ent != "ALL":
-                self._ent_set = set()
                 if self._ent == "STATS":
                     self._ent_set.add("CCSPlayerResource")
                 else:
@@ -41,9 +41,9 @@ class DemoParser:
             self._counter = [[], [], []]
 
         # self.subscribe_to_event("gevent_player_death", self._my_player_death)
-        self.subscribe_to_event("gevent_begin_new_match", self._my_begin_new_match)
-        self.subscribe_to_event("gevent_round_end", self._my_round_end)
-        self.subscribe_to_event("gevent_round_officially_ended", self._my_round_officially_ended)
+        # self.subscribe_to_event("gevent_begin_new_match", self._my_begin_new_match)
+        # self.subscribe_to_event("gevent_round_end", self._my_round_end)
+        # self.subscribe_to_event("gevent_round_officially_ended", self._my_round_officially_ended)
         self.subscribe_to_event("packet_svc_CreateStringTable", self._mypkt_svc_CreateStringTable)
         self.subscribe_to_event("packet_svc_UpdateStringTable", self._mypkt_svc_UpdateStringTable)
         self.subscribe_to_event("packet_svc_GameEvent", self._mypkt_svc_GameEvent)
@@ -361,7 +361,7 @@ class DemoParser:
         # pass
         self._match_started = True
         # self.opr = False
-        print("MATCH STARTED.....................................................................")
+        # print("MATCH STARTED.....................................................................")
 
     def _my_round_end(self, data):
         pass
@@ -373,11 +373,11 @@ class DemoParser:
         if self._match_started:
             self._round_current += 1
             # self.opr = False
-        if self._round_current == 2:
-            p.print_players_userinfo(self.dump, self._players_by_uid)
-            p.print_one_entity(self.dump, self.get_resource_table())
+        # if self._round_current == 2:
+        #     p.print_players_userinfo(self.dump, self._players_by_uid)
+        #     p.print_one_entity(self.dump, self.get_resource_table())
             # p.print_entities(self.dump, self._entities)
-        print("ROUND {}..........................................................".format(self._round_current))
+        # print("ROUND {}..........................................................".format(self._round_current))
 
     # NO MORE EVENTS HANDLERS <
 

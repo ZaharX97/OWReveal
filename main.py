@@ -17,5 +17,5 @@ if __name__ == "__main__":
     g.app.window.mainloop()
 
 # todo
+# get rank mode from the demo
 # new function to count stats in warmup
-# add some buttons for previous, next round

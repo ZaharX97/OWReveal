@@ -272,8 +272,9 @@ def download_from_link(link, button):
 def analyze_demo(path, button):
     # global g.demo_stats, g.demo_nrplayers
     button.text.set("analyzing...")
-    g.demo_stats = dp.DemoParser(path, ent="NONE")
+    g.demo_stats = dp.DemoParser(path, ent="STATS")
     g.demo_stats.subscribe_to_event("parser_start", my.new_demo)
+    g.demo_stats.subscribe_to_event("parser_new_tick", my.get_game_mode)
     g.demo_stats.subscribe_to_event("gevent_player_team", my.player_team)
     g.demo_stats.subscribe_to_event("gevent_player_death", my.player_death)
     g.demo_stats.subscribe_to_event("gevent_player_spawn", my.player_spawn)
@@ -313,6 +314,11 @@ def analyze_demo(path, button):
                 break
 
     g.demo_stats = my.STATS
+    g.demo_mode = my.game_mode
+    # if g.demo_mode == 7:
+    #     g.expected_players = 4
+    # elif g.demo_mode == 6:
+    #     g.expected_players = 10
     g.demo_nrplayers = g.demo_stats["otherdata"]["nrplayers"]
     rounds_list = [None] * (len(g.demo_stats) - 1)
     for i2 in range(1, len(g.demo_stats)):

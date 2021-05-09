@@ -115,7 +115,7 @@ NAME_CUTOUT_WATCHLIST = 22
 NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 
-VERSION = "4.2.2"
+VERSION = "4.2.3"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 
@@ -127,7 +127,9 @@ path_exec_folder = None
 path_resources = None
 last_server = None
 demo_stats = None
-demo_nrplayers = 10
+demo_nrplayers = 0
+# expected_players = 10
+demo_mode = 0
 demo_ranks = None
 ranks_done = False
 npcap_link = "https://nmap.org/npcap/"

@@ -3,6 +3,7 @@ import myglobals as g
 match_started = False
 round_current = 1
 team_score = {2: 0, 3: 0}
+game_mode = 0
 max_players = 0
 kills_round_list = list()
 PLAYERS = dict()
@@ -23,6 +24,7 @@ class MiniStats:
         self.k = player.k
         self.d = player.d
         self.a = player.a
+        self.ttr = player.team_this_round
 
 
 class MyRoundStats:
@@ -50,6 +52,7 @@ class MyPlayer:
         # 2 = "T" // 3 = "CT"
         self.rank = None
         self.start_team = team
+        self.team_this_round = team
         self.userinfo = None
         self.data = None
         if data:
@@ -66,11 +69,12 @@ class MyPlayer:
 
 
 def new_demo(data):
-    global match_started, round_current, team_score, max_players, PLAYERS, BOTS, takeovers, STATS, kills_round_list
+    global match_started, round_current, team_score, max_players, PLAYERS, BOTS, takeovers, STATS, kills_round_list, game_mode
     match_started = False
     round_current = 1
     team_score = {2: 0, 3: 0}
     max_players = 0
+    game_mode = 0
     kills_round_list = list()
     PLAYERS = dict()
     BOTS = dict()
@@ -100,7 +104,7 @@ def player_team(data):
         return
     rp = PLAYERS.get(data["userid"])
     if rp and rp.start_team is None:
-        if max_players == 10:
+        if game_mode == 6:
             if round_current <= 15:
                 if data["team"] in (2, 3):
                     rp.start_team = data["team"]
@@ -109,7 +113,7 @@ def player_team(data):
                     rp.start_team = 3
                 elif data["team"] == 3:
                     rp.start_team = 2
-        elif max_players == 4:
+        elif game_mode == 7:
             if round_current <= 8:
                 if data["team"] in (2, 3):
                     rp.start_team = data["team"]
@@ -118,6 +122,8 @@ def player_team(data):
                     rp.start_team = 3
                 elif data["team"] == 3:
                     rp.start_team = 2
+    if rp and rp.start_team:
+        rp.team_this_round = data["team"]
 
 
 def player_death(data):
@@ -135,13 +141,13 @@ def player_death(data):
         # print(data)
         krl_d = d
         if not d:
-            if not((max_players == 10 and round_current <= 15) or (max_players == 4 and round_current <= 8)):
+            if not((game_mode == 6 and round_current <= 15) or (game_mode == 7 and round_current <= 8)):
                 df = 2 if df == 3 else 3
             krl_d = MyPlayer(data=g.demo_stats._players_by_uid[data["userid"]], ui=True, team=df)
             krl_d.name = f"BOT {krl_d.name}"
         krl_k = k
         if not k:
-            if not ((max_players == 10 and round_current <= 15) or (max_players == 4 and round_current <= 8)):
+            if not ((game_mode == 6 and round_current <= 15) or (game_mode == 7 and round_current <= 8)):
                 kf = 2 if kf == 3 else 3
             if data["attacker"] == 0:
                 krl_k = krl_d
@@ -180,11 +186,13 @@ def player_spawn(data):
     if data["teamnum"] == 0:
         return
     rp = PLAYERS.get(data["userid"])
+    # if rp:
+    #     print(f"  BGN: {rp.name} - s: {rp.start_team} // ttr: {rp.team_this_round} // teamnum: {data['teamnum']}")
     # print(data["userid"], bp, rp)
     # print("inside")
     # print(round_current, ">", bp, rp.start_team if rp else None)
     if rp and rp.start_team is None:
-        if max_players == 10:
+        if game_mode == 6:
             if round_current <= 15:
                 if data["teamnum"] in (2, 3):
                     rp.start_team = data["teamnum"]
@@ -193,7 +201,7 @@ def player_spawn(data):
                     rp.start_team = 3
                 elif data["teamnum"] == 3:
                     rp.start_team = 2
-        elif max_players == 4:
+        elif game_mode == 7:
             if round_current <= 8:
                 if data["teamnum"] in (2, 3):
                     rp.start_team = data["teamnum"]
@@ -202,6 +210,10 @@ def player_spawn(data):
                     rp.start_team = 3
                 elif data["teamnum"] == 3:
                     rp.start_team = 2
+    if rp and rp.start_team:
+        rp.team_this_round = data["teamnum"]
+    # if rp:
+    #     print(f"  END: {rp.name} - s: {rp.start_team} // ttr: {rp.team_this_round} // teamnum: {data['teamnum']}\n")
     # print(">>", BOTS.get(data["userid"]), rp.start_team if rp else None)
     # print(".................................................")
 
@@ -217,14 +229,14 @@ def begin_new_match(data):
     if match_started:
         _reset_pstats()
     match_started = True
-    # print("MATCH STARTED.....................................................................")
+    print("MATCH STARTED.....................................................................")
 
 
 def round_end(data):
     global match_started, round_current, team_score
     if match_started:
-        if max_players == 10:
-            if round_current <= 15:
+        if game_mode == 6:
+            if round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}):
                 if data["winner"] == 2:
                     team_score[2] += 1
                 elif data["winner"] == 3:
@@ -234,7 +246,7 @@ def round_end(data):
                     team_score[3] += 1
                 elif data["winner"] == 3:
                     team_score[2] += 1
-        elif max_players == 4:
+        elif game_mode == 7:
             if round_current <= 8:
                 if data["winner"] == 2:
                     team_score[2] += 1
@@ -256,18 +268,25 @@ def round_officially_ended(data):
         round_current += 1
         kills_round_list = list()
         takeovers.clear()
-    # print("ROUND {}..........................................................".format(round_current))
+        for p2 in PLAYERS.values():
+            p2.team_this_round = None
+    print("ROUND {}..........................................................".format(round_current))
 
 
 def cmd_dem_stop(data):
     global STATS, round_current, team_score, PLAYERS, max_players
     STATS.update({round_current: MyRoundStats(team_score[2], team_score[3], PLAYERS)})
     STATS["otherdata"]["kills"].update({round_current: kills_round_list})
-    # if 0 < max_players < 4:
-    #     max_players = 4
-    # elif 6 < max_players < 10:
-    #     max_players = 10
     STATS["otherdata"].update({"nrplayers": max_players})
+    for rnd, sts in STATS.items():
+        if rnd == "otherdata":
+            continue
+        for p2 in sts.pscore:
+            if not p2.ttr:
+                if (game_mode == 6 and (rnd <= 15 or (rnd > 30 and rnd % 6 in {1, 2, 3}))) or (game_mode == 7 and rnd <= 8):
+                    p2.ttr = p2.player.start_team
+                else:
+                    p2.ttr = 2 if p2.player.start_team == 3 else 3
 
 
 def update_pinfo(data):
@@ -328,8 +347,26 @@ def get_ranks(data):
                 g.ranks_done = True
 
 
+def get_game_mode(data):
+    global game_mode
+    if game_mode == 0:
+        if g.demo_stats.header.server_name.find("FACEIT") != -1:
+            game_mode = 6
+            g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
+            g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
+            return
+        res_table = g.demo_stats.get_resource_table()
+        if res_table:
+            for player in g.demo_stats._players_by_uid.values():
+                game_mode = res_table.props["m_iCompetitiveRankType"][str(player.entity_id).zfill(3)]
+                if game_mode != 0:
+                    g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
+                    g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
+                    break
+
+
 def _reset_pstats():
-    global PLAYERS, team_score
+    global PLAYERS, team_score, kills_round_list
     for p2 in PLAYERS.values():
         team_score[2] = 0
         team_score[3] = 0
@@ -337,6 +374,8 @@ def _reset_pstats():
         p2.a = 0
         p2.d = 0
         p2.start_team = None
+        p2.team_this_round = None
+    kills_round_list.clear()
 
 
 def print_match_stats(data):
