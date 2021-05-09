@@ -6,7 +6,7 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.2.3** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.2.4** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
   * fixed [issue #6](https://github.com/ZaharX97/OWReveal/issues/6) no stats appearing when a game started with fewer players than normal
   * improved 'check vac' results
   * fixed [issue #4](https://github.com/ZaharX97/OWReveal/issues/4)

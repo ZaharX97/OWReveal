@@ -285,12 +285,12 @@ def analyze_demo(path, button):
     g.demo_stats.subscribe_to_event("parser_update_pinfo", my.update_pinfo)
     g.demo_stats.subscribe_to_event("cmd_dem_stop", my.cmd_dem_stop)
     # g.demo_stats.subscribe_to_event("parser_new_tick", analyze_progress(button))
-    # try:
-    g.demo_stats.parse()
-    # except Exception as err:
-    #     AW.MyAlertWindow(g.app.window, f"Error parsing demo!\n{err}\nPlease open a new issue with the download link for the demo")
-    #     button.text.set("Download DEMO")
-    #     return
+    try:
+        g.demo_stats.parse()
+    except Exception as err:
+        AW.MyAlertWindow(g.app.window, f"Error parsing demo!\n{err}\nPlease open a new issue with the download link for the demo")
+        button.text.set("Download DEMO")
+        return
     g.demo_ranks = dp.DemoParser(path, ent="STATS")
     g.demo_ranks.subscribe_to_event("parser_start", my.new_demo_ranks)
     g.demo_ranks.subscribe_to_event("parser_new_tick", my.get_ranks)

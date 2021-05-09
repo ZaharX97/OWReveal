@@ -350,7 +350,7 @@ def get_ranks(data):
 def get_game_mode(data):
     global game_mode
     if game_mode == 0:
-        if g.demo_stats.header.server_name.find("FACEIT") != -1:
+        if g.demo_stats.header.server_name.upper().find("VALVE") == -1:
             game_mode = 6
             g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
             g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
