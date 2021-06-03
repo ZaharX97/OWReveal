@@ -16,6 +16,7 @@ import scapy.layers.http as scplh
 import requests as req
 import PIL.Image as pili
 import PIL.ImageTk as piltk
+from mysql import connector as sql
 
 import myglobals as g
 import AlertWindow as AW
@@ -426,7 +427,7 @@ def actual_check_vac():
                 continue
             data = r.content[:i3]
             days = data[data.rfind(b"\t") + 1:i3].decode("utf-8")
-            delta = str(dt.datetime.now() - player.dtt)
+            delta = str(dt.datetime.now().astimezone() - player.dtt)
             delta = delta[:delta.find(" day")]
             try:
                 days = int(days)
@@ -436,8 +437,8 @@ def actual_check_vac():
             if days in (0, 1) or days <= delta:
                 newbans += 1
                 player.banned = "Y"
-                newpbtemp = f"{' '*5}#{str(pnumber)}: {player.name}"
-                newpb += newpbtemp.ljust(50) + "\n"
+                newpbtemp = f"{' '*5}#{str(pnumber)}: {player.name}{' '*5}"
+                newpb += newpbtemp + "\n"
             wfile.write(player.ret_string())
         else:
             failed += 1
@@ -454,6 +455,20 @@ def actual_check_vac():
     if failed > 0:
         text += f"Failed to check {failed} players: {failedpb}"
     AW.MyAlertWindow(g.app.window, text, "VAC check")
+
+
+def add_to_db():
+    query = "CALL insert_sus(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+    cnx = sql.connect(**g.dbconfig)
+    crs = cnx.cursor()
+    while len(g.list_add_db):
+        try:
+            crs.execute(query, (g.list_add_db[0][0], g.list_add_db[0][1], g.list_add_db[0][2], g.list_add_db[0][3], g.list_add_db[0][4], g.list_add_db[0][5], g.list_add_db[0][6], g.list_add_db[0][7], g.list_add_db[0][8]))
+            cnx.commit()
+            g.list_add_db.pop(0)
+        except Exception as err:
+            print(err)
+    cnx.close()
 
 
 def analyze_progress(btn):

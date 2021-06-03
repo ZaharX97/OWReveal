@@ -17,5 +17,5 @@ if __name__ == "__main__":
     g.app.window.mainloop()
 
 # todo
-# get rank mode from the demo
-# new function to count stats in warmup
+# count stats in warmup? why bother
+# bind arrowkeys to change rounds in the program while in csgo, so you dont have to alt tab

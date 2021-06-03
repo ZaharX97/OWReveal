@@ -89,7 +89,7 @@ def new_demo(data):
 
 
 def player_team(data):
-    global BOTS, PLAYERS, max_players, round_current
+    global BOTS, PLAYERS, max_players, round_current, game_mode
     # trying to find out player teams (and bots, mainly bots here) since i'm not parsing entities
     # if data["isbot"]:
     #     print("bot {} joined team {} / disc= {}".format(data["userid"], data["team"], data["disconnect"]))
@@ -105,7 +105,7 @@ def player_team(data):
     rp = PLAYERS.get(data["userid"])
     if rp and rp.start_team is None:
         if game_mode == 6:
-            if round_current <= 15:
+            if round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}):
                 if data["team"] in (2, 3):
                     rp.start_team = data["team"]
             else:
@@ -127,7 +127,7 @@ def player_team(data):
 
 
 def player_death(data):
-    global match_started, PLAYERS, BOTS, takeovers, STATS, round_current, kills_round_list
+    global match_started, PLAYERS, BOTS, takeovers, STATS, round_current, kills_round_list, game_mode
     if match_started:
         k = PLAYERS.get(data["attacker"])
         a = PLAYERS.get(data["assister"])
@@ -141,13 +141,13 @@ def player_death(data):
         # print(data)
         krl_d = d
         if not d:
-            if not((game_mode == 6 and round_current <= 15) or (game_mode == 7 and round_current <= 8)):
+            if not((game_mode == 6 and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode == 7 and round_current <= 8)):
                 df = 2 if df == 3 else 3
             krl_d = MyPlayer(data=g.demo_stats._players_by_uid[data["userid"]], ui=True, team=df)
             krl_d.name = f"BOT {krl_d.name}"
         krl_k = k
         if not k:
-            if not ((game_mode == 6 and round_current <= 15) or (game_mode == 7 and round_current <= 8)):
+            if not ((game_mode == 6 and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode == 7 and round_current <= 8)):
                 kf = 2 if kf == 3 else 3
             if data["attacker"] == 0:
                 krl_k = krl_d
@@ -181,7 +181,7 @@ def player_death(data):
 
 
 def player_spawn(data):
-    global PLAYERS, max_players, round_current
+    global PLAYERS, max_players, round_current, game_mode
     # trying to find out player teams since i'm not parsing entities
     if data["teamnum"] == 0:
         return
@@ -193,7 +193,7 @@ def player_spawn(data):
     # print(round_current, ">", bp, rp.start_team if rp else None)
     if rp and rp.start_team is None:
         if game_mode == 6:
-            if round_current <= 15:
+            if round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}):
                 if data["teamnum"] in (2, 3):
                     rp.start_team = data["teamnum"]
             else:
@@ -233,7 +233,7 @@ def begin_new_match(data):
 
 
 def round_end(data):
-    global match_started, round_current, team_score
+    global match_started, round_current, team_score, game_mode
     if match_started:
         if game_mode == 6:
             if round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}):
@@ -274,7 +274,7 @@ def round_officially_ended(data):
 
 
 def cmd_dem_stop(data):
-    global STATS, round_current, team_score, PLAYERS, max_players
+    global STATS, round_current, team_score, PLAYERS, max_players, game_mode
     STATS.update({round_current: MyRoundStats(team_score[2], team_score[3], PLAYERS)})
     STATS["otherdata"]["kills"].update({round_current: kills_round_list})
     STATS["otherdata"].update({"nrplayers": max_players})

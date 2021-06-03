@@ -1,4 +1,5 @@
 import threading as t
+import functions as f
 
 
 settings_dict = {
@@ -8,7 +9,8 @@ settings_dict = {
     "browser_dl": False,
     "rename_dl": False,
     "auto_dl": True,
-    "delete_after": True
+    "delete_after": True,
+    "add_to_db": True
 }
 RANK_TRANSLATE_IMG = None
 RANK_TRANSLATE_WL = None
@@ -63,6 +65,7 @@ WEAPON_TRANSLATE = {
     "c4": "c4",
     "planted_c4": "c4",
     "knife": "knife",
+    "trigger_hurt": "world",
     "taser": "zeus",
     "decoy": "decoy",
     "flashbang": "flash",
@@ -115,11 +118,13 @@ NAME_CUTOUT_WATCHLIST = 22
 NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 
-VERSION = "4.2.4"
+VERSION = "4.3"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
+SITE_OWREV = "https://zahar.one/owrev"
 
 list_links = list()
+list_add_db = list()
 profile_links = dict()
 stats_active = True
 browser_path = None
@@ -138,6 +143,11 @@ thread_sniff = t.Thread()
 thread_download = t.Thread()
 thread_analyze = t.Thread()
 thread_check_vac = t.Thread()
+thread_add_to_db = t.Thread(target=f.add_to_db, daemon=True)
 event_pkt_found = t.Event()
 event_check_vac = t.Event()
 app = None
+
+dbconfig = {
+    "CENSORED"
+}

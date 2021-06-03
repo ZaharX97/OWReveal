@@ -4,15 +4,13 @@ CSGO Overwatch revealer by sniffing packets
 
 ![Main window](https://i.imgur.com/lulwtDh.png) ![WatchList](https://i.imgur.com/LEablcb.png)
 
+## Suspects added by people: [zahar.one/owrev](https://zahar.one/owrev)
+
 ## Latest Version:  
   
-* v**4.2.4** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
-  * fixed [issue #6](https://github.com/ZaharX97/OWReveal/issues/6) no stats appearing when a game started with fewer players than normal
-  * improved 'check vac' results
-  * fixed [issue #4](https://github.com/ZaharX97/OWReveal/issues/4)
-  * fixed error when kills were made with knives or other unknown weapons  
-  * added icons (for application, in windows taskbar, rank icons in app)  
-  * added buttons to go to prev/next round  
+* v**4.3** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+	* created a small site to show suspects from all people using this app
+	* [zahar.one/owrev](https://zahar.one/owrev) 
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -56,16 +54,13 @@ Also when you select a round, it shows the stats from the end of that round.
   
 ## Older Versions: 
 
-* v**4.1.2** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.1.2)  
-  * added a way to see kills each round  
-  * other small changes  
-  
-* v**4.0.1** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.0.1)  
-  * added more info (rank, server)  
-  * added a check for newer versions  
-  * added some more stats to the WatchList  
-  * 4.0.1: fixed a bug when cheaters had no name in WatchList  
-  * 4.0.1: fixed the check for newer versions  
+* v**4.2.4** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.2.4)  
+  * fixed [issue #6](https://github.com/ZaharX97/OWReveal/issues/6) no stats appearing when a game started with fewer players than normal
+  * improved 'check vac' results
+  * fixed [issue #4](https://github.com/ZaharX97/OWReveal/issues/4)
+  * fixed error when kills were made with knives or other unknown weapons  
+  * added icons (for application, in windows taskbar, rank icons in app)  
+  * added buttons to go to prev/next round  
   
 * v**3.1.5** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.5)  
   * changed npcap link to main site  

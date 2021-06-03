@@ -22,7 +22,7 @@ class MyWatchPlayer:
     def ret_string(self):
         ret = ""
         ret += "{} {} {} ".format(self.link[self.link.rfind("/") + 1:], self.banned,
-                                  self.dtt.strftime("%d-%b-%Y %H:%M:%S"))
+                                  self.dtt.strftime("%d-%b-%Y %H:%M:%S%z"))
         ret += "{}={} ".format(len(self.name), self.name)
         ret += "{}={} {}={} ".format(len(self.kad), self.kad, len(self.map), self.map)
         ret += "{}={} {}={} ".format(len(str(self.rank)), self.rank, len(self.server), self.server)
@@ -59,9 +59,18 @@ class MyWatchPlayer:
         self._read(1)
         self.banned = self._read(1)
         self._read(1)
-        self.dtt = dt.datetime.strptime(self._read(20), "%d-%b-%Y %H:%M:%S")
-        self.date = self.dtt.strftime("%d-%b-%Y %H:%M:%S")[:11]
-        self._read(1)
+        self.dtt = self._read(20)
+        length = self._read(1)
+        if length != " ":
+            self.dtt += length
+            length = self.data.index(" ")
+            self.dtt += self._read(length)
+            self._read(1)
+            self.dtt = dt.datetime.strptime(self.dtt, "%d-%b-%Y %H:%M:%S%z")
+            self.date = self.dtt.strftime("%d-%b-%Y %H:%M:%S%z")[:11]
+        else:
+            self.dtt = dt.datetime.strptime(self.dtt, "%d-%b-%Y %H:%M:%S")
+            self.date = self.dtt.strftime("%d-%b-%Y %H:%M:%S")[:11]
         length = self.data[:self.data.find("=")]
         self._read(1 + len(length))
         self.name = self._read(int(length))

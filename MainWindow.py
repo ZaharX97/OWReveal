@@ -64,9 +64,7 @@ class MainAppWindow:
                                             g.demo_stats[stats].pscore[p].d)
                 # kda = "66 / 66 / 66"
                 if g.demo_stats[stats].pscore[p].ttr == 2:
-                    xxx = g.demo_stats
                     index_to_use = indext
-                    xxxxx = 2
                     if len(pname) >= g.NAME_CUTOUT_MAIN:
                         getattr(self, "label_player" + str(index_to_use)).frame.config(anchor=tk.W)
                     else:
@@ -234,7 +232,9 @@ class MainAppWindow:
             except Exception:
                 AW.MyAlertWindow(self.window, "Error opening WatchList (append)")
                 return
-            dtt = dt.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
+            dtt = dt.datetime.now().astimezone()
+            qdtt = dtt.astimezone(dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+            dtt = dtt.strftime("%d-%b-%Y %H:%M:%S%z")
             map2 = g.demo_stats["otherdata"]["map"]
             # if g.demo_nrplayers == 4:
             #     map2 += "_2v2"
@@ -254,6 +254,10 @@ class MainAppWindow:
                     wfile.write("{}={} {}={} ".format(len(str(rank)), rank, len(g.last_server), g.last_server))
                     wfile.write("{}={}\n".format(len(str(mode)), mode))
                     to_add.remove(player.player.profile)
+                    if g.settings_dict["add_to_db"] and self.entry1_url.text.get() != "":
+                        g.list_add_db.append((link, name, rank, kad, map2, mode, g.last_server, qdtt, 0))
+                        if not g.thread_add_to_db.is_alive():
+                            g.thread_add_to_db.start()
                     if not len(to_add):
                         break
             try:
