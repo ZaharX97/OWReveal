@@ -471,6 +471,7 @@ def add_to_db():
                 print(err)
         cnx.close()
         g.event_add_db.clear()
+        g.event_add_db.wait()
 
 
 def analyze_progress(btn):
