@@ -118,7 +118,7 @@ NAME_CUTOUT_WATCHLIST = 22
 NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 
-VERSION = "4.3"
+VERSION = "4.3.1"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"
@@ -144,6 +144,7 @@ thread_download = t.Thread()
 thread_analyze = t.Thread()
 thread_check_vac = t.Thread()
 thread_add_to_db = t.Thread(target=f.add_to_db, daemon=True)
+event_add_db = t.Event()
 event_pkt_found = t.Event()
 event_check_vac = t.Event()
 app = None

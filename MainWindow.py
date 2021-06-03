@@ -258,6 +258,7 @@ class MainAppWindow:
                         g.list_add_db.append((link, name, rank, kad, map2, mode, g.last_server, qdtt, 0))
                         if not g.thread_add_to_db.is_alive():
                             g.thread_add_to_db.start()
+                        g.event_add_db.set()
                     if not len(to_add):
                         break
             try:

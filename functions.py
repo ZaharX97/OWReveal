@@ -459,16 +459,18 @@ def actual_check_vac():
 
 def add_to_db():
     query = "CALL insert_sus(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-    cnx = sql.connect(**g.dbconfig)
-    crs = cnx.cursor()
-    while len(g.list_add_db):
-        try:
-            crs.execute(query, (g.list_add_db[0][0], g.list_add_db[0][1], g.list_add_db[0][2], g.list_add_db[0][3], g.list_add_db[0][4], g.list_add_db[0][5], g.list_add_db[0][6], g.list_add_db[0][7], g.list_add_db[0][8]))
-            cnx.commit()
-            g.list_add_db.pop(0)
-        except Exception as err:
-            print(err)
-    cnx.close()
+    while True:
+        cnx = sql.connect(**g.dbconfig)
+        crs = cnx.cursor()
+        while len(g.list_add_db):
+            try:
+                crs.execute(query, (g.list_add_db[0][0], g.list_add_db[0][1], g.list_add_db[0][2], g.list_add_db[0][3], g.list_add_db[0][4], g.list_add_db[0][5], g.list_add_db[0][6], g.list_add_db[0][7], g.list_add_db[0][8]))
+                cnx.commit()
+                g.list_add_db.pop(0)
+            except Exception as err:
+                print(err)
+        cnx.close()
+        g.event_add_db.clear()
 
 
 def analyze_progress(btn):
