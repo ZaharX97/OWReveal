@@ -69,8 +69,8 @@ class MyWatchPlayer:
             self.dtt = dt.datetime.strptime(self.dtt, "%d-%b-%Y %H:%M:%S%z")
             self.date = self.dtt.strftime("%d-%b-%Y %H:%M:%S%z")[:11]
         else:
-            self.dtt = dt.datetime.strptime(self.dtt, "%d-%b-%Y %H:%M:%S")
-            self.date = self.dtt.strftime("%d-%b-%Y %H:%M:%S")[:11]
+            self.dtt = dt.datetime.strptime(self.dtt, "%d-%b-%Y %H:%M:%S").astimezone()
+            self.date = self.dtt.strftime("%d-%b-%Y %H:%M:%S%z")[:11]
         length = self.data[:self.data.find("=")]
         self._read(1 + len(length))
         self.name = self._read(int(length))

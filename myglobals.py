@@ -118,7 +118,7 @@ NAME_CUTOUT_WATCHLIST = 22
 NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 
-VERSION = "4.3.2"
+VERSION = "4.3.3"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"
