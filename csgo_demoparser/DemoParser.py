@@ -77,14 +77,15 @@ class DemoParser:
     def unsubscribe_from_event(self, event: str, func=None):
         if func:
             fncs = self._subscribers.get(event)
-            if len(fncs) == 1:
-                self._subscribers.pop(event)
-                return
-            for i2 in range(len(fncs)):
-                if fncs[i2] == func:
-                    fncs.pop(i2)
-                    break
-            self._subscribers.update({event: fncs})
+            if fncs:
+                if len(fncs) == 1:
+                    self._subscribers.pop(event)
+                    return
+                for i2 in range(len(fncs)):
+                    if fncs[i2] == func:
+                        fncs.pop(i2)
+                        break
+                self._subscribers.update({event: fncs})
         else:
             self._subscribers.pop(event)
 

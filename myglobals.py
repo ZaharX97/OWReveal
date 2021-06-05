@@ -57,7 +57,7 @@ RANK_TRANSLATE_TEXT = {
 #     18: "(*☢*)",
 # }
 MODE_TRANSLATE = {
-    0: "Unknown",
+    0: "Unranked",
     6: "Competitive",
     7: "Wingman"
 }
@@ -118,7 +118,7 @@ NAME_CUTOUT_WATCHLIST = 22
 NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 
-VERSION = "4.3.3"
+VERSION = "4.3.4"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"

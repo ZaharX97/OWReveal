@@ -104,7 +104,7 @@ def player_team(data):
         return
     rp = PLAYERS.get(data["userid"])
     if rp and rp.start_team is None:
-        if game_mode == 6:
+        if game_mode in (0, 6):
             if round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}):
                 if data["team"] in (2, 3):
                     rp.start_team = data["team"]
@@ -141,13 +141,13 @@ def player_death(data):
         # print(data)
         krl_d = d
         if not d:
-            if not((game_mode == 6 and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode == 7 and round_current <= 8)):
+            if not((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode == 7 and round_current <= 8)):
                 df = 2 if df == 3 else 3
             krl_d = MyPlayer(data=g.demo_stats._players_by_uid[data["userid"]], ui=True, team=df)
             krl_d.name = f"BOT {krl_d.name}"
         krl_k = k
         if not k:
-            if not ((game_mode == 6 and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode == 7 and round_current <= 8)):
+            if not ((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode == 7 and round_current <= 8)):
                 kf = 2 if kf == 3 else 3
             if data["attacker"] == 0:
                 krl_k = krl_d
@@ -192,7 +192,7 @@ def player_spawn(data):
     # print("inside")
     # print(round_current, ">", bp, rp.start_team if rp else None)
     if rp and rp.start_team is None:
-        if game_mode == 6:
+        if game_mode in (0, 6):
             if round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}):
                 if data["teamnum"] in (2, 3):
                     rp.start_team = data["teamnum"]
@@ -235,7 +235,7 @@ def begin_new_match(data):
 def round_end(data):
     global match_started, round_current, team_score, game_mode
     if match_started:
-        if game_mode == 6:
+        if game_mode in (0, 6):
             if round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}):
                 if data["winner"] == 2:
                     team_score[2] += 1
@@ -283,7 +283,8 @@ def cmd_dem_stop(data):
             continue
         for p2 in sts.pscore:
             if not p2.ttr:
-                if (game_mode == 6 and (rnd <= 15 or (rnd > 30 and rnd % 6 in {1, 2, 3}))) or (game_mode == 7 and rnd <= 8):
+                rnd = int(rnd)
+                if (game_mode in (0, 6) and (rnd <= 15 or (rnd > 30 and rnd % 6 in {1, 2, 3}))) or (game_mode == 7 and rnd <= 8):
                     p2.ttr = p2.player.start_team
                 else:
                     p2.ttr = 2 if p2.player.start_team == 3 else 3
@@ -349,20 +350,37 @@ def get_ranks(data):
 
 def get_game_mode(data):
     global game_mode
+    gmd = dict()
     if game_mode == 0:
         if g.demo_stats.header.server_name.upper().find("VALVE") == -1:
-            game_mode = 6
+            game_mode = 0
             g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
             g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
             return
         res_table = g.demo_stats.get_resource_table()
-        if res_table:
-            for player in g.demo_stats._players_by_uid.values():
-                game_mode = res_table.props["m_iCompetitiveRankType"][str(player.entity_id).zfill(3)]
+        if res_table and len(PLAYERS) > 1:
+            for player in PLAYERS.values():
+                game_mode = res_table.props["m_iCompetitiveRankType"][str(player.userinfo.entity_id).zfill(3)]
+                gmd.update({game_mode: 1 if not gmd.get(game_mode) else gmd.get(game_mode) + 1})
+                # if game_mode != -1:
+                #     g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
+                #     g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
+                #     break
+            # print(gmd)
+            for x in sorted(gmd.keys(), reverse=True):
+                # print(x, len(PLAYERS.values()))
+                game_mode = x
                 if game_mode != 0:
                     g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
                     g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
-                    break
+                elif not match_started:
+                    g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
+                    g.demo_stats.subscribe_to_event("gevent_begin_new_match", get_game_mode)
+                elif match_started:
+                    g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
+                    g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
+                    g.demo_stats.unsubscribe_from_event("gevent_begin_new_match", get_game_mode)
+                break
 
 
 def _reset_pstats():
