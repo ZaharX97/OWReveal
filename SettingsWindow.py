@@ -4,6 +4,7 @@ import tkinter as tk
 import tkinter.filedialog as tkfd
 import subprocess as sp
 import webbrowser as web
+import datetime as dt
 
 import myglobals as g
 import functions as f
@@ -60,6 +61,7 @@ class SettingsWindow:
             AW.MyAlertWindow(g.app.window, "A demo is already being analyzed, please wait!")
             return
         g.app.entry1_url.text.set("")
+        g.demo_date = dt.datetime.now().astimezone(dt.timezone.utc)
         g.app.update_stats()
         g.thread_analyze = t.Thread(target=lambda: f.analyze_demo(path, g.app.btn3_download), daemon=True)
         g.thread_analyze.start()

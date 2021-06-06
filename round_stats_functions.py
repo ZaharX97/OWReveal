@@ -113,7 +113,7 @@ def player_team(data):
                     rp.start_team = 3
                 elif data["team"] == 3:
                     rp.start_team = 2
-        elif game_mode == 7:
+        elif game_mode in (-7, 7):
             if round_current <= 8:
                 if data["team"] in (2, 3):
                     rp.start_team = data["team"]
@@ -141,13 +141,13 @@ def player_death(data):
         # print(data)
         krl_d = d
         if not d:
-            if not((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode == 7 and round_current <= 8)):
+            if not((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode in (-7, 7) and round_current <= 8)):
                 df = 2 if df == 3 else 3
             krl_d = MyPlayer(data=g.demo_stats._players_by_uid[data["userid"]], ui=True, team=df)
             krl_d.name = f"BOT {krl_d.name}"
         krl_k = k
         if not k:
-            if not ((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode == 7 and round_current <= 8)):
+            if not ((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode in (-7, 7) and round_current <= 8)):
                 kf = 2 if kf == 3 else 3
             if data["attacker"] == 0:
                 krl_k = krl_d
@@ -201,7 +201,7 @@ def player_spawn(data):
                     rp.start_team = 3
                 elif data["teamnum"] == 3:
                     rp.start_team = 2
-        elif game_mode == 7:
+        elif game_mode in (-7, 7):
             if round_current <= 8:
                 if data["teamnum"] in (2, 3):
                     rp.start_team = data["teamnum"]
@@ -246,7 +246,7 @@ def round_end(data):
                     team_score[3] += 1
                 elif data["winner"] == 3:
                     team_score[2] += 1
-        elif game_mode == 7:
+        elif game_mode in (-7, 7):
             if round_current <= 8:
                 if data["winner"] == 2:
                     team_score[2] += 1
@@ -284,7 +284,7 @@ def cmd_dem_stop(data):
         for p2 in sts.pscore:
             if not p2.ttr:
                 rnd = int(rnd)
-                if (game_mode in (0, 6) and (rnd <= 15 or (rnd > 30 and rnd % 6 in {1, 2, 3}))) or (game_mode == 7 and rnd <= 8):
+                if (game_mode in (0, 6) and (rnd <= 15 or (rnd > 30 and rnd % 6 in {1, 2, 3}))) or (game_mode in (-7, 7) and rnd <= 8):
                     p2.ttr = p2.player.start_team
                 else:
                     p2.ttr = 2 if p2.player.start_team == 3 else 3
@@ -381,6 +381,8 @@ def get_game_mode(data):
                         g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
                         g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
                         g.demo_stats.unsubscribe_from_event("gevent_begin_new_match", get_game_mode)
+                        if len(PLAYERS) <= 4:
+                            game_mode = -7
                 break
 
 
