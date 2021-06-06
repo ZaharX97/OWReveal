@@ -59,6 +59,7 @@ class SettingsWindow:
         if g.thread_download.is_alive() or g.thread_analyze.is_alive():
             AW.MyAlertWindow(g.app.window, "A demo is already being analyzed, please wait!")
             return
+        g.app.entry1_url.text.set("")
         g.app.update_stats()
         g.thread_analyze = t.Thread(target=lambda: f.analyze_demo(path, g.app.btn3_download), daemon=True)
         g.thread_analyze.start()

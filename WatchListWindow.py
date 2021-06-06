@@ -252,7 +252,7 @@ class WatchListWindow:
         label = btk.MyLabelStyle(frame, "MAP")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=5, padx=5, sticky=tk.W + tk.E)
-        label = btk.MyLabelStyle(frame, "DATE ADDED")
+        label = btk.MyLabelStyle(frame, "DEMO DATE")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=6, padx=5, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "COMMENTS")

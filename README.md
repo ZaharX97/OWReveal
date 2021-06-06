@@ -8,12 +8,13 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.3.4** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.3.5** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
 	* created a small site to show suspects from all people using this app  
 	* [zahar.one/owrev](https://zahar.one/owrev)  
 	* fixed: only 1 suspect was added to site, then a restart was needed  
 	* fixed: check vac didnt work in v4.3  
 	* fixed: unranked gamed didnt show team scores  
+	* (new) added demo date
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)

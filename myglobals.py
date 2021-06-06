@@ -1,5 +1,6 @@
 import threading as t
 import functions as f
+import datetime as dt
 
 
 settings_dict = {
@@ -117,8 +118,9 @@ NAME_CUTOUT_MAIN = 16
 NAME_CUTOUT_WATCHLIST = 22
 NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
+DEMOS_AGE = 24 * 3
 
-VERSION = "4.3.4"
+VERSION = "4.3.5"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"
@@ -131,6 +133,7 @@ browser_path = None
 path_exec_folder = None
 path_resources = None
 last_server = None
+demo_date = dt.datetime.now().astimezone(dt.timezone.utc)
 demo_stats = None
 demo_nrplayers = 0
 # expected_players = 10

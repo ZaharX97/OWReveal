@@ -85,7 +85,7 @@ def new_demo(data):
             "PFN": {}
         }
     }
-    STATS["otherdata"].update({"map": data.map_name})
+    STATS["otherdata"].update({"header": data})
 
 
 def player_team(data):
@@ -373,13 +373,14 @@ def get_game_mode(data):
                 if game_mode != 0:
                     g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
                     g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
-                elif not match_started:
-                    g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
-                    g.demo_stats.subscribe_to_event("gevent_begin_new_match", get_game_mode)
-                elif match_started:
-                    g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
-                    g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
-                    g.demo_stats.unsubscribe_from_event("gevent_begin_new_match", get_game_mode)
+                else:
+                    if not match_started:
+                        g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
+                        g.demo_stats.subscribe_to_event("gevent_begin_new_match", get_game_mode)
+                    elif match_started:
+                        g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
+                        g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
+                        g.demo_stats.unsubscribe_from_event("gevent_begin_new_match", get_game_mode)
                 break
 
 

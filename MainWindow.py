@@ -232,10 +232,10 @@ class MainAppWindow:
             except Exception:
                 AW.MyAlertWindow(self.window, "Error opening WatchList (append)")
                 return
-            dtt = dt.datetime.now().astimezone()
-            qdtt = dtt.astimezone(dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-            dtt = dtt.strftime("%d-%b-%Y %H:%M:%S%z")
-            map2 = g.demo_stats["otherdata"]["map"]
+            dtt = g.demo_date.astimezone().strftime("%d-%b-%Y %H:%M:%S%z")
+            qdtt_demo = g.demo_date.strftime("%Y-%m-%d %H:%M:%S")
+            qdtt_now = dt.datetime.now().astimezone(dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+            map2 = g.demo_stats["otherdata"]["header"].map_name
             # if g.demo_nrplayers == 4:
             #     map2 += "_2v2"
             for player in g.demo_stats[len(g.demo_stats) - 1].pscore:
@@ -255,7 +255,16 @@ class MainAppWindow:
                     wfile.write("{}={}\n".format(len(str(mode)), mode))
                     to_add.remove(player.player.profile)
                     if g.settings_dict["add_to_db"] and self.entry1_url.text.get() != "":
-                        g.list_add_db.append((link, name, rank, kad, map2, mode, g.last_server, qdtt, 0))
+                        # delta = dt.timedelta(hours=g.DEMOS_AGE)
+                        # if (dt.datetime.now().astimezone(dt.timezone.utc) - g.demo_date) > delta or g.demo_stats["otherdata"]["header"].server_name.upper().find("VALVE") == -1:
+                        #     if not len(to_add):
+                        #         break
+                        #     continue
+                        if g.demo_stats["otherdata"]["header"].server_name.upper().find("VALVE") == -1:
+                            if not len(to_add):
+                                break
+                            continue
+                        g.list_add_db.append((link, name, rank, kad, map2, mode, g.last_server, qdtt_now, qdtt_demo, 0))
                         if not g.thread_add_to_db.is_alive():
                             g.thread_add_to_db.start()
                         g.event_add_db.set()

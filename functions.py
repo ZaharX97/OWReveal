@@ -227,6 +227,8 @@ def download_from_link(link, button):
     r = req.get(link, stream=True)
     chunk_size = 16384
     size_total = int(r.headers["Content-Length"])
+    g.demo_date = r.headers["last-modified"]
+    g.demo_date = dt.datetime.strptime(g.demo_date, "%a, %d %b %Y %H:%M:%S %Z").replace(tzinfo=dt.timezone.utc)
     size_total_mb = str(int(size_total / (1 << 20))) + "MB"
     size_curr = 0
     if g.settings_dict["rename_dl"] is False:
@@ -326,7 +328,7 @@ def analyze_demo(path, button):
         rounds_list[i2 - 1] = "Round " + str(i2)
     g.app.btn6_round.update(rounds_list, cmd=g.app.update_stats)
     # g.app.btn6_round.text.set("Round " + str(len(g.demo_stats) - 2))
-    tempmap = g.demo_stats["otherdata"]["map"]
+    tempmap = g.demo_stats["otherdata"]["header"].map_name
     tempmapidx = tempmap.find("_scrimmagemap")
     if tempmapidx != -1:
         tempmap = tempmap[:tempmapidx]
@@ -458,13 +460,13 @@ def actual_check_vac():
 
 
 def add_to_db():
-    query = "CALL insert_sus(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+    query = "CALL insert_sus(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
     while True:
         cnx = sql.connect(**g.dbconfig)
         crs = cnx.cursor()
         while len(g.list_add_db):
             try:
-                crs.execute(query, (g.list_add_db[0][0], g.list_add_db[0][1], g.list_add_db[0][2], g.list_add_db[0][3], g.list_add_db[0][4], g.list_add_db[0][5], g.list_add_db[0][6], g.list_add_db[0][7], g.list_add_db[0][8]))
+                crs.execute(query, (g.list_add_db[0][0], g.list_add_db[0][1], g.list_add_db[0][2], g.list_add_db[0][3], g.list_add_db[0][4], g.list_add_db[0][5], g.list_add_db[0][6], g.list_add_db[0][7], g.list_add_db[0][8], g.list_add_db[0][9]))
                 cnx.commit()
                 g.list_add_db.pop(0)
             except Exception as err:
