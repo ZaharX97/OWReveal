@@ -87,7 +87,7 @@ class SettingsWindow:
     def _update_on_save(self):
         # global g.settings_dict
         self._check_get_name(self.entry_demo)
-        f.save_settings()
+        f.save_settings_json()
 
     def _destroy_checkname(self):
         self._check_get_name(self.entry_demo)

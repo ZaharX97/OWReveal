@@ -25,6 +25,7 @@ import WatchPlayer as WP
 import csgo_demoparser.DemoParser as dp
 import round_stats_functions as my
 
+import json as j
 
 def check_new_version():
     resp = req.get(g.PROJECT_LINK_LATEST)
@@ -162,6 +163,17 @@ def save_settings():
     file.close()
 
 
+def save_settings_json():
+    # global g.settings_dict, g.exec_path
+    try:
+        file = open(g.path_exec_folder + "ow_config.json", "w")
+    except Exception:
+        AW.MyAlertWindow(g.app.window, "Error saving settings to file")
+        return
+    j.dump(g.settings_dict, file, ensure_ascii=False, indent=4)
+    file.close()
+
+
 def import_settings():
     # global g.settings_dict, g.exec_path
     g.browser_path = find_browser_path()
@@ -189,6 +201,20 @@ def import_settings():
     import_settings_extra()
     file.close()
 
+
+def import_settings_json():
+    # global g.settings_dict, g.exec_path
+    g.browser_path = find_browser_path()
+    g.path_exec_folder = find_file_path(True)
+    try:
+        file = open(g.path_exec_folder + "ow_config.json", "r")
+        data = j.load(file)
+    except Exception:
+        import_settings_extra()
+        return
+    g.settings_dict = data
+    import_settings_extra()
+    file.close()
 
 def import_settings_extra():
     if not len(g.settings_dict["dl_loc"]):
