@@ -11,7 +11,7 @@ CSGO Overwatch revealer by sniffing packets
 * v**4.4** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
 	* created a small site to show suspects from all people using this app  
 	* [zahar.one/owrev](https://zahar.one/owrev)  
-	* save settings in json format, thx ToothyDev
+	* save settings in json format, thx hurdurderp
 	* added a button to see ban speed (need to check vac once to update dates) (issue #5)
 	* added a new window to set the speed for vac checking (issue #8)
   
