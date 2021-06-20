@@ -252,7 +252,7 @@ class MainAppWindow:
                     wfile.write("{} {} {} {}={} ".format(link, "N", dtt, len(name), name))
                     wfile.write("{}={} {}={} ".format(len(kad), kad, len(map2), map2))
                     wfile.write("{}={} {}={} ".format(len(str(rank)), rank, len(g.last_server), g.last_server))
-                    wfile.write("{}={}\n".format(len(str(mode)), mode))
+                    wfile.write("{}={} 2=-1\n".format(len(str(mode)), mode))
                     to_add.remove(player.player.profile)
                     if g.settings_dict["add_to_db"] and self.entry1_url.text.get() != "":
                         # delta = dt.timedelta(hours=g.DEMOS_AGE)

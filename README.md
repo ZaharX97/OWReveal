@@ -8,14 +8,12 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.3.6** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.4** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
 	* created a small site to show suspects from all people using this app  
 	* [zahar.one/owrev](https://zahar.one/owrev)  
-	* fixed: only 1 suspect was added to site, then a restart was needed  
-	* fixed: check vac didnt work in v4.3  
-	* fixed: unranked gamed didnt show team scores  
-	* added demo date
-	* (new) fixed: stats in wingman unranked (who plays that) were not shown correctly
+	* save settings in json format, thx ToothyDev
+	* added a button to see ban speed (need to check vac once to update dates) (issue #5)
+	* added a new window to set the speed for vac checking (issue #8)
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -59,13 +57,14 @@ Also when you select a round, it shows the stats from the end of that round.
   
 ## Older Versions: 
 
-* v**4.2.4** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.2.4)  
-  * fixed [issue #6](https://github.com/ZaharX97/OWReveal/issues/6) no stats appearing when a game started with fewer players than normal
-  * improved 'check vac' results
-  * fixed [issue #4](https://github.com/ZaharX97/OWReveal/issues/4)
-  * fixed error when kills were made with knives or other unknown weapons  
-  * added icons (for application, in windows taskbar, rank icons in app)  
-  * added buttons to go to prev/next round  
+* v**4.3.6** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.3.6)  
+	* created a small site to show suspects from all people using this app  
+	* [zahar.one/owrev](https://zahar.one/owrev)  
+	* fixed: only 1 suspect was added to site, then a restart was needed  
+	* fixed: check vac didnt work in v4.3  
+	* fixed: unranked gamed didnt show team scores  
+	* added demo date
+	* (new) fixed: stats in wingman unranked (who plays that) were not shown correctly
   
 * v**3.1.5** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.5)  
   * changed npcap link to main site  

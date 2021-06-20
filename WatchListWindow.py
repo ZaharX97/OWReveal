@@ -11,10 +11,29 @@ import functions as f
 import AlertWindow as AW
 import WatchPlayer as WP
 import WatchStatsWindow as WSW
+import CheckVacWindow as CVW
 import blackTkClasses as btk
 
 
 class WatchListWindow:
+    def _switch_ban_speed(self):
+        for x in self.watchlist:
+            if x["player"]:
+                if self.btn_switch_speed.text.get() == "Ban Speed":
+                    if x["player"].banned == "Y":
+                        text = str(x["player"].ban_speed) + " days"
+                    else:
+                        text = ""
+                else:
+                    text = x["player"].date
+                x["date"].text.set(text)
+        if self.btn_switch_speed.text.get() == "Ban Speed":
+            self.btn_switch_speed.text.set("Demo Date")
+            self.label_bandate.text.set("BAN SPEED")
+        else:
+            self.btn_switch_speed.text.set("Ban Speed")
+            self.label_bandate.text.set("DEMO DATE")
+
     def _remove_pl(self):
         for i2 in range(10):
             if self.watchlist[i2]["btn"].value.get() == tk.TRUE and self.watchlist[i2]["kad"].text.get() != "":
@@ -99,7 +118,17 @@ class WatchListWindow:
                 self.watchlist[i2]["map"].frame.config(anchor=tk.W)
             else:
                 self.watchlist[i2]["map"].frame.config(anchor=tk.CENTER)
-            self.watchlist[i2]["date"].text.set(player.date if player else "TO REMOVE")
+            if player:
+                if self.label_bandate.text.get() == "BAN SPEED":
+                    if player.banned == "Y":
+                        text = str(player.ban_speed) + " days"
+                    else:
+                        text = ""
+                else:
+                    text = player.date
+            else:
+                text = "TO REMOVE"
+            self.watchlist[i2]["date"].text.set(text)
             temp_comm = player.comm if player else ""
             self.watchlist[i2]["comm"].frame.grid()
             self.watchlist[i2]["comm"].text.set(
@@ -189,6 +218,7 @@ class WatchListWindow:
             nrplayers += 1
             if player.banned == "Y":
                 banned += 1
+        g.wl_players = nrplayers
         self.rfile.seek(0, 0)
         self._stats.update({"nrpl": nrplayers, "ban": banned})
         if nrplayers % 10 == 0:
@@ -252,9 +282,9 @@ class WatchListWindow:
         label = btk.MyLabelStyle(frame, "MAP")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=5, padx=5, sticky=tk.W + tk.E)
-        label = btk.MyLabelStyle(frame, "DEMO DATE")
-        label.frame.config(font=("", 12, "bold"))
-        label.frame.grid(row=0, column=6, padx=5, sticky=tk.W + tk.E)
+        self.label_bandate = btk.MyLabelStyle(frame, "DEMO DATE")
+        self.label_bandate.frame.config(font=("", 12, "bold"))
+        self.label_bandate.frame.grid(row=0, column=6, padx=5, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "COMMENTS")
         label.frame.config(font=("", 12, "bold"))
         label.frame.grid(row=0, column=7, padx=5, sticky=tk.W + tk.E)
@@ -364,10 +394,12 @@ class WatchListWindow:
         btn.btn.grid(row=0, column=1, padx=5)
         btn = btk.MyButtonStyle(frame, "(Un) Mark Banned", self._mark_ban)
         btn.btn.grid(row=0, column=2, padx=5)
-        btn = btk.MyButtonStyle(frame, "Check VAC", lambda: f.check_vac(self))
+        btn = btk.MyButtonStyle(frame, "Check VAC", lambda: CVW.MyVacWindow(self))
         btn.btn.grid(row=0, column=3, padx=5)
         btn = btk.MyButtonStyle(frame, "More Stats", self._open_more_stats)
         btn.btn.grid(row=0, column=4, padx=5)
+        self.btn_switch_speed = btk.MyButtonStyle(frame, "Ban Speed", self._switch_ban_speed)
+        self.btn_switch_speed.btn.grid(row=0, column=5, padx=5)
         frame.pack(side=tk.LEFT)
         self._check_stats()
         frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)

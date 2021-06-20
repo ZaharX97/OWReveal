@@ -10,6 +10,7 @@ import bz2
 import subprocess as sp
 import webbrowser as web
 import tkinter as tk
+import json as j
 
 import scapy.all as scpa
 import scapy.layers.http as scplh
@@ -25,7 +26,6 @@ import WatchPlayer as WP
 import csgo_demoparser.DemoParser as dp
 import round_stats_functions as my
 
-import json as j
 
 def check_new_version():
     resp = req.get(g.PROJECT_LINK_LATEST)
@@ -152,21 +152,8 @@ def check_npcap(window):
 
 
 def save_settings():
-    # global g.settings_dict, g.exec_path
     try:
         file = open(g.path_exec_folder + "ow_config", "w")
-    except Exception:
-        AW.MyAlertWindow(g.app.window, "Error saving settings to file")
-        return
-    for x in g.settings_dict.items():
-        file.write(str(x) + "\n")
-    file.close()
-
-
-def save_settings_json():
-    # global g.settings_dict, g.exec_path
-    try:
-        file = open(g.path_exec_folder + "ow_config.json", "w")
     except Exception:
         AW.MyAlertWindow(g.app.window, "Error saving settings to file")
         return
@@ -175,7 +162,6 @@ def save_settings_json():
 
 
 def import_settings():
-    # global g.settings_dict, g.exec_path
     g.browser_path = find_browser_path()
     g.path_exec_folder = find_file_path(True)
     try:
@@ -183,38 +169,17 @@ def import_settings():
     except Exception:
         import_settings_extra()
         return
-    for line in file:
-        sett = line[2:line.find(",") - 1]
-        if g.settings_dict.get(sett) is None:
-            continue
-        val = line[line.find(",") + 2:-2]
-        if sett == "dl_loc":
-            val = val.replace(r"\\", "\\")
-        if val == "True":
-            g.settings_dict[sett] = True
-        elif val == "False":
-            g.settings_dict[sett] = False
-        else:
-            if sett not in ("dl_loc", "rename"):
-                continue
-            g.settings_dict[sett] = val[1:-1]
-    import_settings_extra()
-    file.close()
-
-
-def import_settings_json():
-    # global g.settings_dict, g.exec_path
-    g.browser_path = find_browser_path()
-    g.path_exec_folder = find_file_path(True)
     try:
-        file = open(g.path_exec_folder + "ow_config.json", "r")
         data = j.load(file)
     except Exception:
+        file.close()
         import_settings_extra()
+        os.remove(g.path_exec_folder + "ow_config")
         return
     g.settings_dict = data
     import_settings_extra()
     file.close()
+
 
 def import_settings_extra():
     if not len(g.settings_dict["dl_loc"]):
@@ -420,21 +385,23 @@ def calc_window_pos(x, y):
             x.winfo_height() - y.winfo_height()) / 2
 
 
-def check_vac(window):
-    # global g.thread_check_vac
+def check_vac(window, delay, count):
+    g.vac_delay = delay
+    g.vac_players = count
     window.close_and_update()
     g.thread_check_vac = t.Thread(target=actual_check_vac, daemon=True)
     g.thread_check_vac.start()
-    AW.MyAlertWindow(g.app.window, "Started checking for new VAC bans\n1 player / sec", "VAC check")
+    howmany = "All players" if count == 0 else "Last 30 players"
+    AW.MyAlertWindow(g.app.window, "Started checking for new VAC bans\n{}\n1 player / {} sec".format(howmany, g.vac_delay), "VAC check")
 
 
 def actual_check_vac():
-    # global g.event_check_vac
     newbans = 0
     newpb = ""
     failed = 0
     failedpb = ""
     pnumber = 0
+    vac_pmax = 0
     try:
         rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
         wfile = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8")
@@ -444,9 +411,22 @@ def actual_check_vac():
     for line in rfile:
         player = WP.MyWatchPlayer(line)
         pnumber += 1
+        if g.vac_players == 0:
+            text = "Checking VAC {}/{}".format(pnumber, g.wl_players)
+        else:
+            text = "Checking VAC {}/{}".format(vac_pmax + 1, g.vac_players)
+        g.app.btn8_watchlist.text.set(text)
         if player.banned == "Y":
-            wfile.write(player.ret_string())
-            continue
+            if player.ban_speed == -1:
+                pass
+            else:
+                wfile.write(player.ret_string())
+                continue
+        if g.vac_players != 0:
+            if vac_pmax >= g.vac_players:
+                wfile.write(player.ret_string())
+                continue
+            vac_pmax += 1
         r = req.get(player.link + "?l=english")
         if r.status_code == req.codes.ok:
             i3 = r.content.find(b" day(s) since last ban")
@@ -463,6 +443,9 @@ def actual_check_vac():
             except Exception:
                 delta = 0
             if days in (0, 1) or days <= delta:
+                delta_speed = dt.datetime.now().astimezone(dt.timezone.utc) - dt.timedelta(days=days)
+                delta_speed = delta_speed - player.dtt
+                player.ban_speed = delta_speed.days
                 newbans += 1
                 player.banned = "Y"
                 newpbtemp = f"{' '*5}#{str(pnumber)}: {player.name}{' '*5}"
@@ -472,7 +455,7 @@ def actual_check_vac():
             failed += 1
             failedpb += f"#{str(pnumber)} / "
             wfile.write(player.ret_string())
-        g.event_check_vac.wait(1)
+        g.event_check_vac.wait(g.vac_delay)
     wfile.close()
     rfile.close()
     g.event_check_vac.wait(3)
@@ -482,6 +465,7 @@ def actual_check_vac():
     text += newpb
     if failed > 0:
         text += f"Failed to check {failed} players: {failedpb}"
+    g.app.btn8_watchlist.text.set("WatchList")
     AW.MyAlertWindow(g.app.window, text, "VAC check")
 
 

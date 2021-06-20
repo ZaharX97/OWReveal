@@ -26,7 +26,7 @@ class MyWatchPlayer:
         ret += "{}={} ".format(len(self.name), self.name)
         ret += "{}={} {}={} ".format(len(self.kad), self.kad, len(self.map), self.map)
         ret += "{}={} {}={} ".format(len(str(self.rank)), self.rank, len(self.server), self.server)
-        ret += "{}={}".format(len(str(self.mode)), self.mode)
+        ret += "{}={} {}={}".format(len(str(self.mode)), self.mode, len(str(self.ban_speed)), self.ban_speed)
         if len(self.comm):
             ret += " {}\n".format(self.comm)
         else:
@@ -46,6 +46,7 @@ class MyWatchPlayer:
         self.map = None
         self.server = None
         self.mode = None
+        self.ban_speed = None
 
         if data:
             self.data = data
@@ -100,6 +101,14 @@ class MyWatchPlayer:
             self.rank = 0
             self.server = "Unknown"
             self.mode = 0
+        length = self.data.find("=")
+        if length != -1:
+            self._read(1)
+            length = self.data[:length - 1]
+            self._read(1 + len(length))
+            self.ban_speed = self._read(int(length))
+        else:
+            self.ban_speed = -1
         if self.data == "\n" or self.data == " \n":
             self.comm = ""
         else:
