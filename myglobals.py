@@ -12,7 +12,8 @@ settings_dict = {
     "auto_dl": True,
     "delete_after": True,
     "add_to_db": True,
-    "vac_delay": 1000
+    "vac_delay": 1000,
+    "steam_api_key": ""
 }
 RANK_TRANSLATE_IMG = None
 RANK_TRANSLATE_WL = None
@@ -122,7 +123,7 @@ NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 DEMOS_AGE = 24 * 3
 
-VERSION = "4.4"
+VERSION = "4.4.1"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"
@@ -143,6 +144,7 @@ demo_mode = 0
 demo_ranks = None
 ranks_done = False
 npcap_link = "https://nmap.org/npcap/"
+steam_bans_api = "https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key="
 vac_delay = settings_dict["vac_delay"]
 vac_players = 30
 wl_players = 0

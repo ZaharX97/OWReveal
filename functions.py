@@ -11,6 +11,7 @@ import subprocess as sp
 import webbrowser as web
 import tkinter as tk
 import json as j
+import re
 
 import scapy.all as scpa
 import scapy.layers.http as scplh
@@ -176,7 +177,8 @@ def import_settings():
         import_settings_extra()
         os.remove(g.path_exec_folder + "ow_config")
         return
-    g.settings_dict = data
+    for pairs in data.items():
+        g.settings_dict.update({pairs[0]: pairs[1]})
     import_settings_extra()
     file.close()
 
@@ -391,8 +393,9 @@ def check_vac(window, delay, count):
     window.close_and_update()
     g.thread_check_vac = t.Thread(target=actual_check_vac, daemon=True)
     g.thread_check_vac.start()
+    keyornot = "Using Steam Web API Key" if g.settings_dict["steam_api_key"] != "" else "No Steam API Key found"
     howmany = "All players" if count == 0 else "Last 30 players"
-    AW.MyAlertWindow(g.app.window, "Started checking for new VAC bans\n{}\n1 player / {} sec".format(howmany, g.vac_delay), "VAC check")
+    AW.MyAlertWindow(g.app.window, "Started checking for new VAC bans\n{}\n{}\n1 player / {} sec".format(keyornot, howmany, g.vac_delay), "VAC check")
 
 
 def actual_check_vac():
@@ -417,9 +420,7 @@ def actual_check_vac():
             text = "Checking VAC {}/{}".format(vac_pmax + 1, g.vac_players)
         g.app.btn8_watchlist.text.set(text)
         if player.banned == "Y":
-            if player.ban_speed == -1:
-                pass
-            else:
+            if player.ban_speed != -1:
                 wfile.write(player.ret_string())
                 continue
         if g.vac_players != 0:
@@ -427,35 +428,63 @@ def actual_check_vac():
                 wfile.write(player.ret_string())
                 continue
             vac_pmax += 1
-        r = req.get(player.link + "?l=english")
-        if r.status_code == req.codes.ok:
-            i3 = r.content.find(b" day(s) since last ban")
-            if i3 == -1:
+        if g.settings_dict["steam_api_key"] == "":
+            r = req.get(player.link + "?l=english")
+            if r.status_code == req.codes.ok:
+                i3 = r.text.find(" day(s) since last ban")
+                if i3 == -1:
+                    wfile.write(player.ret_string())
+                    continue
+                data = r.text[:i3]
+                days = data[data.rfind("\t") + 1:i3]
+                delta = dt.datetime.now().astimezone() - player.dtt
+                delta = delta.days
+                try:
+                    days = int(days)
+                    delta = int(delta)
+                except Exception:
+                    delta = 0
+                if days in (0, 1) or days <= delta:
+                    delta_speed = dt.datetime.now().astimezone(dt.timezone.utc) - dt.timedelta(days=days)
+                    delta_speed = delta_speed - player.dtt
+                    player.ban_speed = delta_speed.days
+                    newbans += 1
+                    player.banned = "Y"
+                    newpbtemp = f"{' '*5}#{str(pnumber)}: {player.name}{' '*5}"
+                    newpb += newpbtemp + "\n"
                 wfile.write(player.ret_string())
-                continue
-            data = r.content[:i3]
-            days = data[data.rfind(b"\t") + 1:i3].decode("utf-8")
-            delta = str(dt.datetime.now().astimezone() - player.dtt)
-            delta = delta[:delta.find(" day")]
-            try:
-                days = int(days)
-                delta = int(delta)
-            except Exception:
-                delta = 0
-            if days in (0, 1) or days <= delta:
-                delta_speed = dt.datetime.now().astimezone(dt.timezone.utc) - dt.timedelta(days=days)
-                delta_speed = delta_speed - player.dtt
-                player.ban_speed = delta_speed.days
-                newbans += 1
-                player.banned = "Y"
-                newpbtemp = f"{' '*5}#{str(pnumber)}: {player.name}{' '*5}"
-                newpb += newpbtemp + "\n"
-            wfile.write(player.ret_string())
+            else:
+                failed += 1
+                failedpb += f"#{str(pnumber)} / "
+                wfile.write(player.ret_string())
         else:
-            failed += 1
-            failedpb += f"#{str(pnumber)} / "
-            wfile.write(player.ret_string())
-        g.event_check_vac.wait(g.vac_delay)
+            psteam64 = re.search(".*steamcommunity[.]com/profiles/(\d+)", player.link)
+            psteam64 = psteam64.groups()[0]
+            r = req.get(g.steam_bans_api + g.settings_dict["steam_api_key"] + "&steamids=" + psteam64)
+            if r.status_code == req.codes.ok:
+                data = r.json()
+                if data["players"][0]["NumberOfVACBans"] + data["players"][0]["NumberOfGameBans"] > 0:
+                    days = data["players"][0]["DaysSinceLastBan"]
+                    delta = dt.datetime.now().astimezone() - player.dtt
+                    delta = delta.days
+                    if days in (0, 1) or days <= delta:
+                        delta_speed = dt.datetime.now().astimezone(dt.timezone.utc) - dt.timedelta(days=days)
+                        delta_speed = delta_speed - player.dtt
+                        player.ban_speed = delta_speed.days
+                        newbans += 1
+                        player.banned = "Y"
+                        newpbtemp = f"{' ' * 5}#{str(pnumber)}: {player.name}{' ' * 5}"
+                        newpb += newpbtemp + "\n"
+                else:
+                    wfile.write(player.ret_string())
+                    continue
+                wfile.write(player.ret_string())
+            else:
+                failed += 1
+                failedpb += f"#{str(pnumber)} / "
+                wfile.write(player.ret_string())
+        if g.vac_delay > 0:
+            g.event_check_vac.wait(g.vac_delay)
     wfile.close()
     rfile.close()
     g.event_check_vac.wait(3)

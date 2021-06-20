@@ -84,20 +84,27 @@ class SettingsWindow:
         button.text.set(name)
         g.settings_dict["rename"] = name
 
+    def _save_api_key(self):
+        key = self.entry_steam_key.text.get()
+        if key != "":
+            g.settings_dict["steam_api_key"] = key
+
     def _update_on_save(self):
         # global g.settings_dict
         self._check_get_name(self.entry_demo)
+        self._save_api_key()
         f.save_settings()
 
     def _destroy_checkname(self):
         self._check_get_name(self.entry_demo)
+        self._save_api_key()
         self.window.destroy()
 
     def __init__(self, root):
         self.window = tk.Toplevel(root)
         self.window.transient(root)
         self.window.title("Settings")
-        self.window.minsize(580, 375)
+        self.window.minsize(580, 405)
         sizex = self.window.minsize()[0]
         # sizey = self.window.minsize()[1]
         self.window.resizable(False, False)
@@ -167,11 +174,25 @@ class SettingsWindow:
         #                                   "rank_doodles")
         # self.btn_set7.btn.grid(row=8, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
 
+        def lc_event3(event):
+            if g.browser_path is None:
+                web.open_new_tab("https://steamcommunity.com/dev/apikey")
+            else:
+                sp.Popen(g.browser_path + " " + "https://steamcommunity.com/dev/apikey")
+
+        self.label_skey = btk.MyLabelStyle(self.window, "API Key:")
+        self.label_skey.frame.config(cursor="hand2")
+        self.label_skey.frame.grid(row=9, column=0, padx=5, pady=5)
+        self.label_skey.frame.bind("<Button-1>", lc_event3)
+        self.entry_steam_key = btk.MyEntryStyle(self.window, g.settings_dict["steam_api_key"])
+        self.entry_steam_key.frame.config(state="normal")
+        self.entry_steam_key.frame.grid(row=9, column=1, sticky=tk.W + tk.E, padx=5, columnspan=3)
+
         self.btn_save = btk.MyButtonStyle(self.window, "Save to file", self._update_on_save)
-        self.btn_save.btn.grid(row=9, column=3, sticky=tk.E, padx=5, pady=5)
+        self.btn_save.btn.grid(row=10, column=3, sticky=tk.E, padx=5, pady=5)
 
         self.btn_analyze = btk.MyButtonStyle(self.window, "Analyze a demo", self._analyze_demo)
-        self.btn_analyze.btn.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
+        self.btn_analyze.btn.grid(row=10, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
 
         def lc_event1(event):
             if g.browser_path is None:
@@ -181,7 +202,7 @@ class SettingsWindow:
 
         self.label_github = btk.MyLabelStyle(self.window, "v{}   {}".format(g.VERSION, g.PROJECT_LINK))
         self.label_github.frame.config(cursor="hand2")
-        self.label_github.frame.grid(row=9, column=1, padx=5, pady=5, columnspan=2)
+        self.label_github.frame.grid(row=10, column=1, padx=5, pady=5, columnspan=2)
         self.label_github.frame.bind("<Button-1>", lc_event1)
 
         self._update_all_settings()
