@@ -404,7 +404,6 @@ def actual_check_vac():
     failed = 0
     failedpb = ""
     pnumber = 0
-    vac_pmax = 0
     try:
         rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
         wfile = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8")
@@ -414,20 +413,15 @@ def actual_check_vac():
     for line in rfile:
         player = WP.MyWatchPlayer(line)
         pnumber += 1
-        if g.vac_players == 0:
-            text = "Checking VAC {}/{}".format(pnumber, g.wl_players)
-        else:
-            text = "Checking VAC {}/{}".format(vac_pmax + 1, g.vac_players)
+        if g.vac_players != 0 and pnumber < g.wl_players - g.vac_players:
+            wfile.write(player.ret_string())
+            continue
+        text = "Checking VAC {}/{}".format(pnumber, g.wl_players)
         g.app.btn8_watchlist.text.set(text)
         if player.banned == "Y":
             if player.ban_speed != -1:
                 wfile.write(player.ret_string())
                 continue
-        if g.vac_players != 0:
-            if vac_pmax >= g.vac_players:
-                wfile.write(player.ret_string())
-                continue
-            vac_pmax += 1
         if g.settings_dict["steam_api_key"] == "":
             r = req.get(player.link + "?l=english")
             if r.status_code == req.codes.ok:

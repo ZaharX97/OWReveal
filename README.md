@@ -8,13 +8,14 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.4.1** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.4.2** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
 	* created a small site to show suspects from all people using this app  
 	* [zahar.one/owrev](https://zahar.one/owrev)  
 	* save settings in json format, thx hurdurderp
 	* added a button to see ban speed (need to check vac once to update dates) (issue #5)
 	* added a new window to set the speed for vac checking (issue #8)
 	* added field in settings to use steam api key to check for bans
+	* fixed last x players ban check, it was checking for first players not last
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)

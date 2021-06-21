@@ -123,7 +123,7 @@ NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 DEMOS_AGE = 24 * 3
 
-VERSION = "4.4.1"
+VERSION = "4.4.2"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"
