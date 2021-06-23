@@ -8,14 +8,12 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.4.2** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.4.3** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
 	* created a small site to show suspects from all people using this app  
 	* [zahar.one/owrev](https://zahar.one/owrev)  
-	* save settings in json format, thx hurdurderp
-	* added a button to see ban speed (need to check vac once to update dates) (issue #5)
-	* added a new window to set the speed for vac checking (issue #8)
-	* added field in settings to use steam api key to check for bans
-	* fixed last x players ban check, it was checking for first players not last
+	* fixed [issue #12](https://github.com/ZaharX97/OWReveal/issues/12), net adapter is saved to settings  
+	* fixed [issue #14](https://github.com/ZaharX97/OWReveal/issues/14), right click to copy steamid  
+	* added some kind of format to renaming demos, [more info](https://github.com/ZaharX97/OWReveal#demo-rename-format)  
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -56,6 +54,11 @@ Also when you select a round, it shows the stats from the end of that round.
 
 **Q**: What python version was this written for?  
 **A**: I wrote this using python 3.8.1  
+  
+## Demo Rename Format:
+**?N** gets replaced by original demo name (bunch of numbers)  
+**?Ttime_format?** gets replaced by demo date in the format you choose  
+more info here: [time format codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes)
   
 ## Older Versions: 
 

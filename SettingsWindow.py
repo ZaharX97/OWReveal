@@ -20,6 +20,7 @@ class SettingsWindow:
         self._update_buttons(self.btn_set5)
         self._update_buttons(self.btn_set6)
         self._update_buttons(self.btn_set7)
+        self._update_buttons(self.btn_set8)
         if g.settings_dict["auto_dl"] and g.settings_dict["browser_dl"]:
             self._change_setting(self.btn_set2)
             self._change_setting(self.btn_set5)
@@ -70,7 +71,7 @@ class SettingsWindow:
     def _check_get_name(self, button):
         # global g.settings_dict
         name = ""
-        list1 = "\n\"*/:<>?\\|"
+        list1 = "\n\"*/:<>\\|"
         for letter in button.text.get():
             if list1.find(letter) == -1:
                 if len(name) and letter == " " and name[-1] == " ":
@@ -104,27 +105,32 @@ class SettingsWindow:
         self.window = tk.Toplevel(root)
         self.window.transient(root)
         self.window.title("Settings")
-        self.window.minsize(580, 405)
+        self.window.minsize(580, 445)
         sizex = self.window.minsize()[0]
         # sizey = self.window.minsize()[1]
         self.window.resizable(False, False)
         self.window.config(bg="#101010")
         self.window.protocol("WM_DELETE_WINDOW", self._destroy_checkname)
 
+        self.label_set8 = btk.MyLabelStyle(self.window, "Auto start scanning when opening the app")
+        self.label_set8.frame.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
+        self.btn_set8 = btk.MyButtonStyle(self.window, "OFF", lambda: self._change_setting(self.btn_set8), "auto_start")
+        self.btn_set8.btn.grid(row=0, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+
         self.label_set1 = btk.MyLabelStyle(self.window, "Stop scanning after a DEMO LINK is found")
-        self.label_set1.frame.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
+        self.label_set1.frame.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
         self.btn_set1 = btk.MyButtonStyle(self.window, "OFF", lambda: self._change_setting(self.btn_set1), "stop_label")
-        self.btn_set1.btn.grid(row=0, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+        self.btn_set1.btn.grid(row=1, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
 
         self.label_set5 = btk.MyLabelStyle(self.window, "Auto download DEMO after a LINK is found")
-        self.label_set5.frame.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
+        self.label_set5.frame.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
         self.btn_set5 = btk.MyButtonStyle(self.window, "ON", lambda: self._change_setting(self.btn_set5), "auto_dl")
-        self.btn_set5.btn.grid(row=1, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+        self.btn_set5.btn.grid(row=2, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
 
         self.label_set2 = btk.MyLabelStyle(self.window, "Use the browser to download (doesn't work with auto download)")
-        self.label_set2.frame.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
+        self.label_set2.frame.grid(row=3, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
         self.btn_set2 = btk.MyButtonStyle(self.window, "OFF", lambda: self._change_setting(self.btn_set2), "browser_dl")
-        self.btn_set2.btn.grid(row=2, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+        self.btn_set2.btn.grid(row=3, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
 
         def lc_event2(event):
             if g.browser_path is None:
@@ -133,46 +139,46 @@ class SettingsWindow:
                 sp.Popen(g.browser_path + " " + g.SITE_OWREV)
 
         self.label_set7 = btk.MyLabelStyle(self.window, "Add suspects to database (zahar.one/owrev)")
-        self.label_set7.frame.grid(row=3, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
+        self.label_set7.frame.grid(row=4, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
         self.btn_set7 = btk.MyButtonStyle(self.window, "ON", lambda: self._change_setting(self.btn_set7), "add_to_db")
-        self.btn_set7.btn.grid(row=3, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+        self.btn_set7.btn.grid(row=4, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
         self.label_set7.frame.config(cursor="hand2")
         self.label_set7.frame.bind("<Button-1>", lc_event2)
 
         self.label_set3 = btk.MyLabelStyle(self.window,
                                            "*" * 50 + "Download location when not using the browser" + "*" * 50)
         self.label_set3.frame.config(width=45)
-        self.label_set3.frame.grid(row=4, column=0, sticky=tk.W + tk.E, pady=5, columnspan=4)
+        self.label_set3.frame.grid(row=5, column=0, sticky=tk.W + tk.E, pady=5, columnspan=4)
         self.btn_browse = btk.MyButtonStyle(self.window, "Browse", self._set_download_path)
-        self.btn_browse.btn.grid(row=5, column=0, sticky=tk.W + tk.E, padx=5)
+        self.btn_browse.btn.grid(row=6, column=0, sticky=tk.W + tk.E, padx=5)
         self.entry_browse = btk.MyEntryStyle(self.window, g.settings_dict["dl_loc"])
-        self.entry_browse.frame.grid(row=5, column=1, sticky=tk.W + tk.E, padx=5, columnspan=2)
+        self.entry_browse.frame.grid(row=6, column=1, sticky=tk.W + tk.E, padx=5, columnspan=2)
         self.btn_opendl = btk.MyButtonStyle(self.window, "Open",
                                             lambda: os.system("start {}".format(g.settings_dict["dl_loc"])))
-        self.btn_opendl.btn.grid(row=5, column=3, sticky=tk.E, padx=5, pady=5)
+        self.btn_opendl.btn.grid(row=6, column=3, sticky=tk.E, padx=5, pady=5)
         self.label_set3_1 = btk.MyLabelStyle(self.window, "*" * 200)
         self.label_set3_1.frame.config(width=45)
-        self.label_set3_1.frame.grid(row=6, column=0, sticky=tk.W + tk.E, columnspan=4)
+        self.label_set3_1.frame.grid(row=7, column=0, sticky=tk.W + tk.E, columnspan=4)
 
         self.label_set4 = btk.MyLabelStyle(self.window, "Rename downloaded demos to ")
-        self.label_set4.frame.grid(row=7, column=1, sticky=tk.W, padx=5, pady=5)
+        self.label_set4.frame.grid(row=8, column=1, sticky=tk.W, padx=5, pady=5)
         self.btn_set3 = btk.MyButtonStyle(self.window, "ON", lambda: self._change_setting(self.btn_set3), "rename_dl")
-        self.btn_set3.btn.grid(row=7, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+        self.btn_set3.btn.grid(row=8, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
         self.entry_demo = btk.MyEntryStyle(self.window, g.settings_dict["rename"])
         self.entry_demo.frame.config(state="normal")
-        self.entry_demo.frame.grid(row=7, column=2, sticky=tk.W + tk.E, padx=5, columnspan=2)
+        self.entry_demo.frame.grid(row=8, column=2, sticky=tk.W + tk.E, padx=5, columnspan=2)
 
         self.label_set6 = btk.MyLabelStyle(self.window, "Auto delete DEMO after it is analyzed")
-        self.label_set6.frame.grid(row=8, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
+        self.label_set6.frame.grid(row=9, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
         self.btn_set6 = btk.MyButtonStyle(self.window, "ON", lambda: self._change_setting(self.btn_set6),
                                           "delete_after")
-        self.btn_set6.btn.grid(row=8, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+        self.btn_set6.btn.grid(row=9, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
 
         # self.label_set7 = btk.MyLabelStyle(self.window, "Rank doodles")
-        # self.label_set7.frame.grid(row=8, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
+        # self.label_set7.frame.grid(row=9, column=1, sticky=tk.W, padx=5, pady=5, columnspan=2)
         # self.btn_set7 = btk.MyButtonStyle(self.window, "OFF", lambda: self._change_setting(self.btn_set7),
         #                                   "rank_doodles")
-        # self.btn_set7.btn.grid(row=8, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
+        # self.btn_set7.btn.grid(row=9, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
 
         def lc_event3(event):
             if g.browser_path is None:
@@ -182,17 +188,17 @@ class SettingsWindow:
 
         self.label_skey = btk.MyLabelStyle(self.window, "API Key:")
         self.label_skey.frame.config(cursor="hand2")
-        self.label_skey.frame.grid(row=9, column=0, padx=5, pady=5)
+        self.label_skey.frame.grid(row=20, column=0, padx=5, pady=5)
         self.label_skey.frame.bind("<Button-1>", lc_event3)
         self.entry_steam_key = btk.MyEntryStyle(self.window, g.settings_dict["steam_api_key"])
         self.entry_steam_key.frame.config(state="normal")
-        self.entry_steam_key.frame.grid(row=9, column=1, sticky=tk.W + tk.E, padx=5, columnspan=3)
+        self.entry_steam_key.frame.grid(row=20, column=1, sticky=tk.W + tk.E, padx=5, columnspan=3)
 
         self.btn_save = btk.MyButtonStyle(self.window, "Save to file", self._update_on_save)
-        self.btn_save.btn.grid(row=10, column=3, sticky=tk.E, padx=5, pady=5)
+        self.btn_save.btn.grid(row=21, column=3, sticky=tk.E, padx=5, pady=5)
 
         self.btn_analyze = btk.MyButtonStyle(self.window, "Analyze a demo", self._analyze_demo)
-        self.btn_analyze.btn.grid(row=10, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
+        self.btn_analyze.btn.grid(row=21, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
 
         def lc_event1(event):
             if g.browser_path is None:
@@ -202,7 +208,7 @@ class SettingsWindow:
 
         self.label_github = btk.MyLabelStyle(self.window, "v{}   {}".format(g.VERSION, g.PROJECT_LINK))
         self.label_github.frame.config(cursor="hand2")
-        self.label_github.frame.grid(row=10, column=1, padx=5, pady=5, columnspan=2)
+        self.label_github.frame.grid(row=21, column=1, padx=5, pady=5, columnspan=2)
         self.label_github.frame.bind("<Button-1>", lc_event1)
 
         self._update_all_settings()

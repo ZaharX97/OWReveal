@@ -6,6 +6,7 @@ import datetime as dt
 settings_dict = {
     "dl_loc": "",
     "rename": "OW_replay",
+    "auto_start": False,
     "stop_label": False,
     "browser_dl": False,
     "rename_dl": False,
@@ -13,7 +14,8 @@ settings_dict = {
     "delete_after": True,
     "add_to_db": True,
     "vac_delay": 1000,
-    "steam_api_key": ""
+    "steam_api_key": "",
+    "net_interface": ""
 }
 RANK_TRANSLATE_IMG = None
 RANK_TRANSLATE_WL = None
@@ -123,7 +125,7 @@ NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 DEMOS_AGE = 24 * 3
 
-VERSION = "4.4.2"
+VERSION = "4.4.3"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"

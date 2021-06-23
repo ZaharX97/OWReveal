@@ -212,6 +212,12 @@ def import_settings_extra():
         getattr(g.app, "label_rank" + str(i2)).frame.config(image=g.RANK_TRANSLATE_IMG[0])
     g.RANK_TRANSLATE_WL = g.RANK_TRANSLATE_IMG
 
+    if g.settings_dict["net_interface"] != "":
+        g.app.btn1_interfaces.text.set(g.settings_dict["net_interface"])
+
+    if g.settings_dict["auto_start"]:
+        g.app.start_stop()
+
 
 def download_from_link(link, button):
     # global g.settings_dict
@@ -227,7 +233,8 @@ def download_from_link(link, button):
     if g.settings_dict["rename_dl"] is False:
         name = g.list_links[-1][g.list_links[-1].rfind("/") + 1:]
     else:
-        name = g.settings_dict["rename"] + ".dem.bz2"
+        name = return_demo_name()
+        name = name + ".dem.bz2"
     try:
         os.makedirs(g.settings_dict["dl_loc"], exist_ok=True)
         i2 = 1
@@ -378,6 +385,18 @@ def copy_to_clipboard(root, text: str or list):
         for x in text:
             nice_list = nice_list + root.get(x) + "\n"
         root.clipboard_append(nice_list)
+
+
+def return_demo_name():
+    text = g.settings_dict["rename"]
+    text = text.replace("?N", g.list_links[-1][g.list_links[-1].rfind("/") + 1:-8])
+    tformat1 = text.find("?T")
+    tformat2 = text[tformat1 + 1:].find("?") + len(text[:tformat1 + 1])
+    tformat = text[tformat1 + 2: tformat2]
+    print(text, tformat, text[tformat1: tformat2 + 1])
+    text = text.replace(text[tformat1: tformat2 + 1], g.demo_date.strftime(tformat))
+    print(text)
+    return text
 
 
 def calc_window_pos(x, y):

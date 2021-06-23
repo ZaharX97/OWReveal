@@ -2,7 +2,7 @@ import datetime as dt
 import tkinter as tk
 import subprocess as sp
 import webbrowser as web
-import threading as t
+import re
 
 import scapy.all as scpa
 import scapy.layers.http as scplh
@@ -24,6 +24,7 @@ class MainAppWindow:
         if self.btn1_interfaces.text.get() == "Select one interface":
             AW.MyAlertWindow(self.window, "You need to select one network interface")
             return
+        g.settings_dict.update({"net_interface": f.return_interface(self)})
         if self.btn2_start.text.get() == "Start":
             g.thread_sniff = scpa.AsyncSniffer(iface=f.return_interface(self),
                                                lfilter=lambda y: y.haslayer(scplh.HTTPRequest),
@@ -472,6 +473,14 @@ class MainAppWindow:
             else:
                 sp.Popen(g.browser_path + " " + link)
 
+        def rc_event2(event):
+            link = g.profile_links[event.widget]
+            if len(link) == 0:
+                return
+            psteam64 = re.search(".*steamcommunity[.]com/profiles/(\d+)", link)
+            psteam64 = psteam64.groups()[0]
+            f.copy_to_clipboard(event.widget, psteam64)
+
         self.btn_rad1 = btk.MyCheckButtonStyle(self.frame_stats)
         self.btn_rad1.btn.grid(row=0, column=0, padx=5)
         self.btn_rad2 = btk.MyCheckButtonStyle(self.frame_stats)
@@ -632,6 +641,7 @@ class MainAppWindow:
             else:
                 getattr(self, "label_player" + str(i2)).frame.config(cursor="hand2", anchor=tk.E, fg="#df2020")
             getattr(self, "label_player" + str(i2)).frame.bind("<Button-1>", lc_event1)
+            getattr(self, "label_player" + str(i2)).frame.bind("<Button-3>", rc_event2)
             getattr(self, "label_scorep" + str(i2)).frame.config(font=("", 12, ""))
             getattr(self, "label_rank" + str(i2)).frame.config(fg="#aaff00")
 
@@ -652,7 +662,5 @@ class MainAppWindow:
         self.window.grid_rowconfigure(7, minsize=30, weight=1)
         self.window.grid_rowconfigure(8, minsize=30, weight=1)
         self.window.grid_rowconfigure(9, minsize=30, weight=1)
-        self.window.update_idletasks()
 
-        new_ver_thread = t.Thread(target=f.check_new_version)
-        new_ver_thread.start()
+        self.window.update_idletasks()
