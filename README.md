@@ -8,12 +8,13 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.4.3** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.4.4** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
 	* created a small site to show suspects from all people using this app  
 	* [zahar.one/owrev](https://zahar.one/owrev)  
 	* fixed [issue #12](https://github.com/ZaharX97/OWReveal/issues/12), net adapter is saved to settings  
 	* fixed [issue #14](https://github.com/ZaharX97/OWReveal/issues/14), right click to copy steamid  
 	* added some kind of format to renaming demos, [more info](https://github.com/ZaharX97/OWReveal#demo-rename-format)  
+	* fixed [issue #15](https://github.com/ZaharX97/OWReveal/issues/15), right click on the link to copy demo name
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)

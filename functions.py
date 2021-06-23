@@ -213,7 +213,18 @@ def import_settings_extra():
     g.RANK_TRANSLATE_WL = g.RANK_TRANSLATE_IMG
 
     if g.settings_dict["net_interface"] != "":
-        g.app.btn1_interfaces.text.set(g.settings_dict["net_interface"])
+        if platform.platform().lower().find("windows") != -1:
+            iface_list = scpa.get_windows_if_list()
+        else:
+            iface_list = scpa.get_if_list()
+        goodiface = False
+        for x in iface_list:
+            if x["name"] == g.settings_dict["net_interface"]:
+                goodiface = True
+        if not goodiface:
+            g.settings_dict.update({"net_interface": ""})
+        else:
+            g.app.btn1_interfaces.text.set(g.settings_dict["net_interface"])
 
     if g.settings_dict["auto_start"]:
         g.app.start_stop()
@@ -249,6 +260,7 @@ def download_from_link(link, button):
         AW.MyAlertWindow(g.app.window, "Error downloading file")
         button.text.set("Download DEMO")
         return
+    g.demo_name = name[:-4]
     with dest1 as dest:
         for chunk in r.iter_content(chunk_size=chunk_size):
             dest.write(chunk)
@@ -388,14 +400,14 @@ def copy_to_clipboard(root, text: str or list):
 
 
 def return_demo_name():
+    if not g.list_links:
+        return ""
     text = g.settings_dict["rename"]
     text = text.replace("?N", g.list_links[-1][g.list_links[-1].rfind("/") + 1:-8])
     tformat1 = text.find("?T")
     tformat2 = text[tformat1 + 1:].find("?") + len(text[:tformat1 + 1])
     tformat = text[tformat1 + 2: tformat2]
-    print(text, tformat, text[tformat1: tformat2 + 1])
     text = text.replace(text[tformat1: tformat2 + 1], g.demo_date.strftime(tformat))
-    print(text)
     return text
 
 

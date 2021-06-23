@@ -334,8 +334,10 @@ class MainAppWindow:
         self.entry1_url = btk.MyEntryStyle(self.window, "")
         self.entry1_url.frame.grid(row=2, column=0, sticky=tk.W + tk.E, columnspan=5, ipady=3, padx=5, pady=2)
         self.menu1_entry1_copy = btk.MyMenuStyle(self.window)
-        self.menu1_entry1_copy.menu.add_command(label="Copy", command=lambda: f.copy_to_clipboard(
+        self.menu1_entry1_copy.menu.add_command(label="Copy Link", command=lambda: f.copy_to_clipboard(
             self.entry1_url.frame, self.entry1_url.text.get()))
+        self.menu1_entry1_copy.menu.add_command(label="Copy Demo Name", command=lambda: f.copy_to_clipboard(
+            self.entry1_url.frame, g.demo_name))
 
         def rc_event1(event):
             self.menu1_entry1_copy.menu.post(event.x_root, event.y_root)

@@ -125,7 +125,7 @@ NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 DEMOS_AGE = 24 * 3
 
-VERSION = "4.4.3"
+VERSION = "4.4.4"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"
@@ -144,6 +144,7 @@ demo_nrplayers = 0
 # expected_players = 10
 demo_mode = 0
 demo_ranks = None
+demo_name = ""
 ranks_done = False
 npcap_link = "https://nmap.org/npcap/"
 steam_bans_api = "https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key="
