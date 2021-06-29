@@ -3,10 +3,14 @@ import tkinter as tk
 import myglobals as g
 import functions as f
 import blackTkClasses as btk
+import AlertWindow as AW
 
 
 class MyVacWindow:
     def checkk(self, root, count):
+        if g.thread_export.is_alive():
+            AW.MyAlertWindow(self.window, "Exporting WatchList in progress, please wait!")
+            return self.window.destroy()
         delay = self.entry_speed.text.get()
         try:
             delay = int(delay)

@@ -1,6 +1,8 @@
 import tkinter as tk
+import math
 
 import functions as f
+import myglobals as g
 
 
 class MyButtonStyle:
@@ -8,7 +10,7 @@ class MyButtonStyle:
         self.text = tk.StringVar()
         self.text.set(label)
         self.btn = tk.Button(root, textvariable=self.text, command=cmd, name=name)
-        self.btn.config(font=("arial", 10, ""), fg="white", bg="#101010", activebackground="#404040", bd=3)
+        self.btn.config(font=("arial", math.ceil(10 * g.settings_dict["scaling"]), ""), fg="white", bg="#101010", activebackground="#404040", bd=3)
 
 
 class MyCheckButtonStyle:
@@ -24,10 +26,10 @@ class MyOptMenuStyle:
         self.text = tk.StringVar()
         self.text.set(label)
         self.btn = tk.OptionMenu(root, self.text, "")
-        self.btn.config(anchor=tk.W, font=("arial", 10, ""), fg="white", bg="#101010", activebackground="#404040", bd=0, highlightbackground="#404040")
+        self.btn.config(anchor=tk.W, font=("arial", math.ceil(10 * g.settings_dict["scaling"]), ""), fg="white", bg="#101010", activebackground="#404040", bd=0, highlightbackground="#404040")
         self.menu = self.btn["menu"]
         self.update(options)
-        self.menu.config(font=("arial", 10, ""), fg="white", bg="#101010", activebackground="#404040", bd=0, activeborderwidth=2)
+        self.menu.config(font=("arial", math.ceil(10 * g.settings_dict["scaling"]), ""), fg="white", bg="#101010", activebackground="#404040", bd=0, activeborderwidth=2)
 
     def _cmd_new(self, cmd, value):
         self.text.set(value)
@@ -60,7 +62,7 @@ class MyListboxStyle:
             length = 5
             vlength = 5
         self.box.config(activestyle=tk.NONE, listvariable=self.items_box, width=length + 2,
-                        height=vlength + 1, selectmode=tk.MULTIPLE, font=("arial", 10, ""), fg="white",
+                        height=vlength + 1, selectmode=tk.MULTIPLE, font=("arial", math.ceil(10 * g.settings_dict["scaling"]), ""), fg="white",
                         bg="#101010", borderwidth=5)
         if addmenu:
             self.menu = MyMenuStyle(self.box)
@@ -82,7 +84,7 @@ class MyLabelStyle:
         self.text = tk.StringVar()
         self.text.set(label)
         self.frame = tk.Label(root, textvariable=self.text)
-        self.frame.config(font=("arial", 10, ""), fg="white", bg="#101010")
+        self.frame.config(font=("arial", math.ceil(10 * g.settings_dict["scaling"]), ""), fg="white", bg="#101010")
 
 
 class MyEntryStyle:
@@ -90,11 +92,11 @@ class MyEntryStyle:
         self.text = tk.StringVar()
         self.text.set(label)
         self.frame = tk.Entry(root, textvariable=self.text, state="readonly")
-        self.frame.config(justify=tk.CENTER, font=("arial", 10, ""), borderwidth=2, bg="#f0f0f0",
+        self.frame.config(justify=tk.CENTER, font=("arial", math.ceil(10 * g.settings_dict["scaling"]), ""), borderwidth=2, bg="#f0f0f0",
                           readonlybackground="#f0f0f0")
 
 
 class MyMenuStyle:
     def __init__(self, root):
         self.menu = tk.Menu(root)
-        self.menu.config(tearoff=0, font=("arial", 10, ""), fg="white", bg="#101010")
+        self.menu.config(tearoff=0, font=("arial", math.ceil(10 * g.settings_dict["scaling"]), ""), fg="white", bg="#101010")

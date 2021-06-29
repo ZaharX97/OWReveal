@@ -15,7 +15,8 @@ settings_dict = {
     "add_to_db": True,
     "vac_delay": 1000,
     "steam_api_key": "",
-    "net_interface": ""
+    "net_interface": "",
+    "scaling": 1
 }
 RANK_TRANSLATE_IMG = None
 RANK_TRANSLATE_WL = None
@@ -125,14 +126,16 @@ NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 DEMOS_AGE = 24 * 3
 
-VERSION = "4.4.4"
+VERSION = "4.5"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"
 
+csv_header = ["steamid", "banned", "demo_date", "name", "kad", "map", "rank", "server", "game_mode", "ban_speed", "comments"]
 list_links = list()
 list_add_db = list()
 profile_links = dict()
+windows_scaling = 100
 stats_active = True
 browser_path = None
 path_exec_folder = None
@@ -157,6 +160,7 @@ thread_download = t.Thread()
 thread_analyze = t.Thread()
 thread_check_vac = t.Thread()
 thread_add_to_db = t.Thread(target=f.add_to_db, daemon=True)
+thread_export = t.Thread()
 event_add_db = t.Event()
 event_pkt_found = t.Event()
 event_check_vac = t.Event()

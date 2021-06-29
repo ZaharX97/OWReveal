@@ -1,4 +1,5 @@
 import datetime as dt
+import myglobals as g
 
 
 class MyWatchPlayer:
@@ -33,7 +34,10 @@ class MyWatchPlayer:
             ret += "\n"
         return ret
 
-    def __init__(self, data=None):
+    def ret_csv(self):
+        return self.link[36:], self.banned, self.dtt.strftime("%d-%b-%Y %H:%M:%S%z"), self.name, self.kad, self.map, self.rank, self.server, self.mode, self.ban_speed, self.comm
+
+    def __init__(self, data=None, old=False):
         self.name = None
         self.rank = None
         self.link = None
@@ -52,10 +56,43 @@ class MyWatchPlayer:
             self.data = data
             # length = self.data[:self.data.find("=")]
             # self._read(2 + len(length))
-            self._get_player()
+            if old:
+                self._get_player_old()
+            else:
+                self._get_player()
             del self.data
 
     def _get_player(self):
+        self.link = "https://steamcommunity.com/profiles/" + self.data[0]
+        self.banned = self.data[1]
+        try:
+            self.dtt = dt.datetime.strptime(self.data[2], "%d-%b-%Y %H:%M:%S%z")
+        except ValueError:
+            self.dtt = dt.datetime.strptime(self.data[2], "%d-%b-%Y %H:%M:%S").astimezone()
+        self.date = self.dtt.strftime("%d-%b-%Y %H:%M:%S%z")[:11]
+        self.name = self.data[3]
+        self.kad = self.data[4]
+        self.map = self.data[5]
+        try:
+            self.rank = int(self.data[6])
+            self.server = self.data[7]
+            self.mode = int(self.data[8])
+        except IndexError:
+            self.rank = 0
+            self.server = "Unknown"
+            self.mode = 0
+            self.comm = self.data[6]
+        try:
+            self.ban_speed = int(self.data[9])
+        except IndexError:
+            self.ban_speed = -1
+            self.comm = self.data[9]
+        try:
+            self.comm = self.data[10]
+        except IndexError:
+            self.comm = ""
+
+    def _get_player_old(self):
         self.link = "https://steamcommunity.com/profiles/" + self._read(17, string=False)
         self._read(1)
         self.banned = self._read(1)

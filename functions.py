@@ -12,6 +12,7 @@ import webbrowser as web
 import tkinter as tk
 import json as j
 import re
+import csv
 
 import scapy.all as scpa
 import scapy.layers.http as scplh
@@ -26,6 +27,7 @@ import UpdateAlertWindow as UW
 import WatchPlayer as WP
 import csgo_demoparser.DemoParser as dp
 import round_stats_functions as my
+import csvReader as mycsv
 
 
 def check_new_version():
@@ -158,7 +160,22 @@ def save_settings():
     except Exception:
         AW.MyAlertWindow(g.app.window, "Error saving settings to file")
         return
+    g.settings_dict.update({"scaling": g.windows_scaling})
     j.dump(g.settings_dict, file, ensure_ascii=False, indent=4)
+    file.close()
+    g.settings_dict.update({"scaling": round(100 / g.settings_dict["scaling"], 3)})
+
+
+def find_set_scaling():
+    try:
+        file = open(find_file_path(True) + "ow_config", "r")
+    except:
+        return
+    data = j.load(file)
+    if not data.get("scaling") or data["scaling"] < 100:
+        data.update({"scaling": 100})
+    g.windows_scaling = data["scaling"]
+    g.settings_dict.update({"scaling": round(100 / data["scaling"], 3)})
     file.close()
 
 
@@ -178,6 +195,8 @@ def import_settings():
         os.remove(g.path_exec_folder + "ow_config")
         return
     for pairs in data.items():
+        if pairs[0] == "scaling":
+            continue
         g.settings_dict.update({pairs[0]: pairs[1]})
     import_settings_extra()
     file.close()
@@ -188,25 +207,44 @@ def import_settings_extra():
         g.settings_dict["dl_loc"] = find_file_path()
     label_size = (g.app.label_rank1.frame.winfo_width(), g.app.label_rank1.frame.winfo_height())
     g.RANK_TRANSLATE_IMG = {
-        0: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\0.png").resize(label_size, pili.ANTIALIAS)),
-        1: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\1.png").resize(label_size, pili.ANTIALIAS)),
-        2: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\2.png").resize(label_size, pili.ANTIALIAS)),
-        3: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\3.png").resize(label_size, pili.ANTIALIAS)),
-        4: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\4.png").resize(label_size, pili.ANTIALIAS)),
-        5: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\5.png").resize(label_size, pili.ANTIALIAS)),
-        6: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\6.png").resize(label_size, pili.ANTIALIAS)),
-        7: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\7.png").resize(label_size, pili.ANTIALIAS)),
-        8: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\8.png").resize(label_size, pili.ANTIALIAS)),
-        9: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\9.png").resize(label_size, pili.ANTIALIAS)),
-        10: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\10.png").resize(label_size, pili.ANTIALIAS)),
-        11: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\11.png").resize(label_size, pili.ANTIALIAS)),
-        12: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\12.png").resize(label_size, pili.ANTIALIAS)),
-        13: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\13.png").resize(label_size, pili.ANTIALIAS)),
-        14: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\14.png").resize(label_size, pili.ANTIALIAS)),
-        15: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\15.png").resize(label_size, pili.ANTIALIAS)),
-        16: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\16.png").resize(label_size, pili.ANTIALIAS)),
-        17: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\17.png").resize(label_size, pili.ANTIALIAS)),
-        18: piltk.PhotoImage(pili.open(fr"{g.path_resources}resources\csgo_rank_icons\18.png").resize(label_size, pili.ANTIALIAS)),
+        0: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\0.png").resize(label_size, pili.ANTIALIAS)),
+        1: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\1.png").resize(label_size, pili.ANTIALIAS)),
+        2: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\2.png").resize(label_size, pili.ANTIALIAS)),
+        3: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\3.png").resize(label_size, pili.ANTIALIAS)),
+        4: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\4.png").resize(label_size, pili.ANTIALIAS)),
+        5: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\5.png").resize(label_size, pili.ANTIALIAS)),
+        6: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\6.png").resize(label_size, pili.ANTIALIAS)),
+        7: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\7.png").resize(label_size, pili.ANTIALIAS)),
+        8: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\8.png").resize(label_size, pili.ANTIALIAS)),
+        9: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\9.png").resize(label_size, pili.ANTIALIAS)),
+        10: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\10.png").resize(label_size, pili.ANTIALIAS)),
+        11: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\11.png").resize(label_size, pili.ANTIALIAS)),
+        12: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\12.png").resize(label_size, pili.ANTIALIAS)),
+        13: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\13.png").resize(label_size, pili.ANTIALIAS)),
+        14: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\14.png").resize(label_size, pili.ANTIALIAS)),
+        15: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\15.png").resize(label_size, pili.ANTIALIAS)),
+        16: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\16.png").resize(label_size, pili.ANTIALIAS)),
+        17: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\17.png").resize(label_size, pili.ANTIALIAS)),
+        18: piltk.PhotoImage(
+            pili.open(fr"{g.path_resources}resources\csgo_rank_icons\18.png").resize(label_size, pili.ANTIALIAS)),
     }
     for i2 in range(1, 11):
         getattr(g.app, "label_rank" + str(i2)).frame.config(image=g.RANK_TRANSLATE_IMG[0])
@@ -221,10 +259,12 @@ def import_settings_extra():
         for x in iface_list:
             if x["name"] == g.settings_dict["net_interface"]:
                 goodiface = True
+                break
         if not goodiface:
             g.settings_dict.update({"net_interface": ""})
         else:
             g.app.btn1_interfaces.text.set(g.settings_dict["net_interface"])
+    check_csv()
 
     if g.settings_dict["auto_start"]:
         g.app.start_stop()
@@ -303,7 +343,8 @@ def analyze_demo(path, button):
     try:
         g.demo_stats.parse()
     except Exception as err:
-        AW.MyAlertWindow(g.app.window, f"Error parsing demo!\n{err}\nPlease open a new issue with the download link for the demo")
+        AW.MyAlertWindow(g.app.window,
+                         f"Error parsing demo!\n{err}\nPlease open a new issue with the download link for the demo")
         button.text.set("Download DEMO")
         return
     g.demo_ranks = dp.DemoParser(path, ent="STATS")
@@ -315,7 +356,7 @@ def analyze_demo(path, button):
         AW.MyAlertWindow(g.app.window, "Error parsing demo ranks\nStats are OK")
         for player in my.PLAYERS.values():
             player.rank = 0
-    g.last_server = g.demo_ranks.header.server_name[:g.demo_ranks.header.server_name.find("(")-1]
+    g.last_server = g.demo_ranks.header.server_name[:g.demo_ranks.header.server_name.find("(") - 1]
     if g.last_server.find("Valve CS:GO ") != -1:
         g.last_server = g.last_server[12:]
     stringsearch = g.last_server.find(" Server")
@@ -426,7 +467,9 @@ def check_vac(window, delay, count):
     g.thread_check_vac.start()
     keyornot = "Using Steam Web API Key" if g.settings_dict["steam_api_key"] != "" else "No Steam API Key found"
     howmany = "All players" if count == 0 else "Last 30 players"
-    AW.MyAlertWindow(g.app.window, "Started checking for new VAC bans\n{}\n{}\n1 player / {} sec".format(keyornot, howmany, g.vac_delay), "VAC check")
+    AW.MyAlertWindow(g.app.window,
+                     "Started checking for new VAC bans\n{}\n{}\n1 player / {} sec".format(keyornot, howmany,
+                                                                                           g.vac_delay), "VAC check")
 
 
 def actual_check_vac():
@@ -437,28 +480,32 @@ def actual_check_vac():
     pnumber = 0
     try:
         rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
-        wfile = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8")
+        crdr = mycsv.myCSV(rfile)
+        wfile = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8", newline="")
+        cwr = csv.writer(wfile)
     except Exception:
         AW.MyAlertWindow(g.app.window, "Error4 opening WatchList")
         return
-    for line in rfile:
+    cwr.writerow(g.csv_header)
+    crdr.get_next()
+    for line in crdr.reader:
         player = WP.MyWatchPlayer(line)
         pnumber += 1
         if g.vac_players != 0 and pnumber < g.wl_players - g.vac_players:
-            wfile.write(player.ret_string())
+            cwr.writerow(player.ret_csv())
             continue
         text = "Checking VAC {}/{}".format(pnumber, g.wl_players)
         g.app.btn8_watchlist.text.set(text)
         if player.banned == "Y":
             if player.ban_speed != -1:
-                wfile.write(player.ret_string())
+                cwr.writerow(player.ret_csv())
                 continue
         if g.settings_dict["steam_api_key"] == "":
             r = req.get(player.link + "?l=english")
             if r.status_code == req.codes.ok:
                 i3 = r.text.find(" day(s) since last ban")
                 if i3 == -1:
-                    wfile.write(player.ret_string())
+                    cwr.writerow(player.ret_csv())
                     continue
                 data = r.text[:i3]
                 days = data[data.rfind("\t") + 1:i3]
@@ -475,13 +522,13 @@ def actual_check_vac():
                     player.ban_speed = delta_speed.days
                     newbans += 1
                     player.banned = "Y"
-                    newpbtemp = f"{' '*5}#{str(pnumber)}: {player.name}{' '*5}"
+                    newpbtemp = f"{' ' * 5}#{str(pnumber)}: {player.name}{' ' * 5}"
                     newpb += newpbtemp + "\n"
-                wfile.write(player.ret_string())
+                cwr.writerow(player.ret_csv())
             else:
                 failed += 1
                 failedpb += f"#{str(pnumber)} / "
-                wfile.write(player.ret_string())
+                cwr.writerow(player.ret_csv())
         else:
             psteam64 = re.search(".*steamcommunity[.]com/profiles/(\d+)", player.link)
             psteam64 = psteam64.groups()[0]
@@ -501,13 +548,13 @@ def actual_check_vac():
                         newpbtemp = f"{' ' * 5}#{str(pnumber)}: {player.name}{' ' * 5}"
                         newpb += newpbtemp + "\n"
                 else:
-                    wfile.write(player.ret_string())
+                    cwr.writerow(player.ret_csv())
                     continue
-                wfile.write(player.ret_string())
+                cwr.writerow(player.ret_csv())
             else:
                 failed += 1
                 failedpb += f"#{str(pnumber)} / "
-                wfile.write(player.ret_string())
+                cwr.writerow(player.ret_csv())
         if g.vac_delay > 0:
             g.event_check_vac.wait(g.vac_delay)
     wfile.close()
@@ -530,7 +577,10 @@ def add_to_db():
         crs = cnx.cursor()
         while len(g.list_add_db):
             try:
-                crs.execute(query, (g.list_add_db[0][0], g.list_add_db[0][1], g.list_add_db[0][2], g.list_add_db[0][3], g.list_add_db[0][4], g.list_add_db[0][5], g.list_add_db[0][6], g.list_add_db[0][7], g.list_add_db[0][8], g.list_add_db[0][9]))
+                crs.execute(query, (
+                g.list_add_db[0][0], g.list_add_db[0][1], g.list_add_db[0][2], g.list_add_db[0][3], g.list_add_db[0][4],
+                g.list_add_db[0][5], g.list_add_db[0][6], g.list_add_db[0][7], g.list_add_db[0][8],
+                g.list_add_db[0][9]))
                 cnx.commit()
                 g.list_add_db.pop(0)
             except Exception as err:
@@ -540,9 +590,61 @@ def add_to_db():
         g.event_add_db.wait()
 
 
+def check_csv():
+    try:
+        file = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
+    except Exception:
+        return
+    rdr = mycsv.myCSV(file)
+    data = rdr.get_next()
+    file.close()
+    if data != g.csv_header:
+        if g.thread_check_vac.is_alive() or g.thread_export.is_alive():
+            return
+        try:
+            if data[0] == "steamid" and data[6] == "rank":
+                g.thread_export = t.Thread(target=export_wl_csv, args=(True,), daemon=True)
+                g.thread_export.start()
+            else:
+                g.thread_export = t.Thread(target=export_wl_csv, daemon=True)
+                g.thread_export.start()
+        except Exception:
+            # probably empty file
+            pass
+
+
+def export_wl_csv(iscsv=False):
+    try:
+        file = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
+        file_csv = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8", newline="")
+    except:
+        return
+    csv_writer = csv.writer(file_csv)
+    csv_writer.writerow(g.csv_header)
+    if iscsv:
+        rdr = csv.reader(file)
+        for line in rdr:
+            player = WP.MyWatchPlayer(line)
+            csv_writer.writerow(player.ret_csv())
+    else:
+        for line in file:
+            player = WP.MyWatchPlayer(line, old=True)
+            csv_writer.writerow(player.ret_csv())
+    file.close()
+    file_csv.close()
+    try:
+        os.remove(g.path_exec_folder + "watchlist")
+        os.rename(g.path_exec_folder + "watchlist.temp", g.path_exec_folder + "watchlist")
+    except PermissionError:
+        AW.MyAlertWindow(g.app.window, "Cannot replace watchlist!\nwatchlist.temp was created as the newer "
+                                       "version\nRestart the app or replace it manually")
+    # AW.MyAlertWindow(g.app.window, "Done exporting as CSV!", "Export")
+
+
 def analyze_progress(btn):
     def analyze_progress2(data):
         btn.text.set("analyzing... {} %".format(int(data)))
+
     return analyze_progress2
 
 

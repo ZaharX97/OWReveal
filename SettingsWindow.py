@@ -107,7 +107,7 @@ class SettingsWindow:
         self.window.title("Settings")
         self.window.minsize(580, 445)
         sizex = self.window.minsize()[0]
-        # sizey = self.window.minsize()[1]
+        sizey = self.window.minsize()[1]
         self.window.resizable(False, False)
         self.window.config(bg="#101010")
         self.window.protocol("WM_DELETE_WINDOW", self._destroy_checkname)
@@ -188,17 +188,17 @@ class SettingsWindow:
 
         self.label_skey = btk.MyLabelStyle(self.window, "API Key:")
         self.label_skey.frame.config(cursor="hand2")
-        self.label_skey.frame.grid(row=20, column=0, padx=5, pady=5)
+        self.label_skey.frame.grid(row=10, column=0, padx=5, pady=5)
         self.label_skey.frame.bind("<Button-1>", lc_event3)
         self.entry_steam_key = btk.MyEntryStyle(self.window, g.settings_dict["steam_api_key"])
         self.entry_steam_key.frame.config(state="normal")
-        self.entry_steam_key.frame.grid(row=20, column=1, sticky=tk.W + tk.E, padx=5, columnspan=3)
+        self.entry_steam_key.frame.grid(row=10, column=1, sticky=tk.W + tk.E, padx=5, columnspan=3)
 
         self.btn_save = btk.MyButtonStyle(self.window, "Save to file", self._update_on_save)
-        self.btn_save.btn.grid(row=21, column=3, sticky=tk.E, padx=5, pady=5)
+        self.btn_save.btn.grid(row=11, column=3, sticky=tk.E, padx=5, pady=5)
 
         self.btn_analyze = btk.MyButtonStyle(self.window, "Analyze a demo", self._analyze_demo)
-        self.btn_analyze.btn.grid(row=21, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
+        self.btn_analyze.btn.grid(row=11, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
 
         def lc_event1(event):
             if g.browser_path is None:
@@ -208,14 +208,28 @@ class SettingsWindow:
 
         self.label_github = btk.MyLabelStyle(self.window, "v{}   {}".format(g.VERSION, g.PROJECT_LINK))
         self.label_github.frame.config(cursor="hand2")
-        self.label_github.frame.grid(row=21, column=1, padx=5, pady=5, columnspan=2)
+        self.label_github.frame.grid(row=11, column=1, padx=5, pady=5, columnspan=2)
         self.label_github.frame.bind("<Button-1>", lc_event1)
 
         self._update_all_settings()
-        self.window.grid_columnconfigure(0, minsize=0.15 * sizex, weight=1)
-        self.window.grid_columnconfigure(1, minsize=0.5 * sizex, weight=1)
-        self.window.grid_columnconfigure(2, minsize=0.15 * sizex, weight=1)
-        self.window.grid_columnconfigure(3, minsize=0.2 * sizex, weight=1)
+        self.window.grid_columnconfigure(0, minsize=0.15 * sizex * g.settings_dict["scaling"], weight=1)
+        self.window.grid_columnconfigure(1, minsize=0.5 * sizex * g.settings_dict["scaling"], weight=1)
+        self.window.grid_columnconfigure(2, minsize=0.15 * sizex * g.settings_dict["scaling"], weight=1)
+        self.window.grid_columnconfigure(3, minsize=0.2 * sizex * g.settings_dict["scaling"], weight=1)
+
+        self.window.grid_rowconfigure(0, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(1, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(2, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(3, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(4, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(5, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(6, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(7, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(8, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(9, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(10, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(11, minsize=0.083 * sizey * g.settings_dict["scaling"], weight=1)
+
         self.window.grid_propagate(False)
         self.window.update_idletasks()
         self.window.geometry("+%d+%d" % (f.calc_window_pos(root, self.window)))

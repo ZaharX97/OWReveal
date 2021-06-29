@@ -6,6 +6,7 @@ import functions as f
 import MainWindow as MW
 
 if __name__ == "__main__":
+    f.find_set_scaling()
     g.app = MW.MainAppWindow("Another OW Revealer 2", 805, 350)
 
     new_ver_thread = t.Thread(target=f.check_new_version)

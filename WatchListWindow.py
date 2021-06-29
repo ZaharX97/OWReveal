@@ -2,6 +2,8 @@ import os
 import tkinter as tk
 import subprocess as sp
 import webbrowser as web
+import math
+import csv
 
 import PIL.Image as pili
 import PIL.ImageTk as piltk
@@ -11,8 +13,10 @@ import functions as f
 import AlertWindow as AW
 import WatchPlayer as WP
 import WatchStatsWindow as WSW
+import WLExtraWindow as WEW
 import CheckVacWindow as CVW
 import blackTkClasses as btk
+import csvReader as mycsv
 
 
 class WatchListWindow:
@@ -76,15 +80,15 @@ class WatchListWindow:
         if self._lastpage != 0:
             self._check_comm()
         if page < self._lastpage:
-            self.rfile.seek(0, 0)
+            self.csvfile.reset()
             self.findex = 1
         self.entry_page.text.set(str(page))
         self._lastpage = page
         while self.findex < page * 10 - 9:
-            self.rfile.readline()
+            self.csvfile.get_next()
             self.findex += 1
         for i2 in range(10):
-            line = self.rfile.readline()
+            line = self.csvfile.get_next()
             if not line:
                 break
             player = WP.MyWatchPlayer(line)
@@ -177,14 +181,16 @@ class WatchListWindow:
         if not len(self.to_remove) and not len(self.to_ban) and not len(self.to_comm):
             self.window.destroy()
             return
-        self.rfile.seek(0, 0)
+        self.csvfile.reset()
         self.findex = 1
         try:
-            wfile = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8")
+            wfile = open(g.path_exec_folder + "watchlist.temp", "w", encoding="utf-8", newline="")
+            csvwr = csv.writer(wfile)
+            csvwr.writerow(g.csv_header)
         except Exception:
             AW.MyAlertWindow(self.window, "Cannot update WatchList")
             return
-        for line in self.rfile:
+        for line in self.csvfile.reader:
             if self.findex in self.to_remove:
                 self.findex += 1
                 continue
@@ -197,8 +203,8 @@ class WatchListWindow:
             if self.findex in self.to_comm:
                 player.comm = self.comm_dict[self.findex]
             if to_change:
-                line = player.ret_string()
-            wfile.write(line)
+                line = player.ret_csv()
+            csvwr.writerow(line)
             self.findex += 1
         wfile.close()
         self.rfile.close()
@@ -213,13 +219,14 @@ class WatchListWindow:
     def _check_stats(self):
         nrplayers = 0
         banned = 0
-        for line in self.rfile:
+        self.csvfile.get_next()
+        for line in self.csvfile.reader:
             player = WP.MyWatchPlayer(line)
             nrplayers += 1
             if player.banned == "Y":
                 banned += 1
         g.wl_players = nrplayers
-        self.rfile.seek(0, 0)
+        self.csvfile.reset()
         self._stats.update({"nrpl": nrplayers, "ban": banned})
         if nrplayers % 10 == 0:
             self._maxpages = int(nrplayers / 10)
@@ -242,10 +249,14 @@ class WatchListWindow:
     def __init__(self, root):
         try:
             self.rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
+            self.csvfile = mycsv.myCSV(self.rfile)
         except FileNotFoundError:
-            tempwrite = open(g.path_exec_folder + "watchlist", "w", encoding="utf-8")
+            tempwrite = open(g.path_exec_folder + "watchlist", "w", encoding="utf-8", newline="")
+            csvtemp = csv.writer(tempwrite)
+            csvtemp.writerow(g.csv_header)
             tempwrite.close()
             self.rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
+            self.csvfile = mycsv.myCSV(self.rfile)
         self.findex = 1
         self._lastpage = 0
         self._maxpages = 0
@@ -265,37 +276,37 @@ class WatchListWindow:
         self.window.protocol("WM_DELETE_WINDOW", self.close_and_update)
         frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
         label = btk.MyLabelStyle(frame, " \\")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=0, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "   ##")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=1, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "NAME")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=2, padx=5, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "RANK")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=3, padx=5, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "KAD")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=4, padx=5, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "MAP")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=5, padx=5, sticky=tk.W + tk.E)
         self.label_bandate = btk.MyLabelStyle(frame, "DEMO DATE")
-        self.label_bandate.frame.config(font=("", 12, "bold"))
+        self.label_bandate.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         self.label_bandate.frame.grid(row=0, column=6, padx=5, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "COMMENTS")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=7, padx=5, sticky=tk.W + tk.E)
         # frame.grid_columnconfigure(0, minsize=0.002 * sizex, weight=1)
         # frame.grid_columnconfigure(1, minsize=0.002 * sizex, weight=1)
-        frame.grid_columnconfigure(2, minsize=0.23 * sizex, weight=1)
-        frame.grid_columnconfigure(3, minsize=0.08 * sizex, weight=1)
-        frame.grid_columnconfigure(4, minsize=0.14 * sizex, weight=1)
-        frame.grid_columnconfigure(5, minsize=0.14 * sizex, weight=1)
-        frame.grid_columnconfigure(6, minsize=0.14 * sizex, weight=1)
-        frame.grid_columnconfigure(7, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(2, minsize=0.23 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(3, minsize=0.08 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(4, minsize=0.14 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(5, minsize=0.14 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(6, minsize=0.14 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(7, minsize=0.2 * sizex * g.settings_dict["scaling"], weight=1)
         frame.grid_propagate(False)
         frame.pack(fill=tk.X)
         frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
@@ -343,24 +354,25 @@ class WatchListWindow:
                  "comm": comm, "player": None})
         # self.sf.inner.grid_columnconfigure(0, minsize=0.05 * sizex, weight=1)
         # self.sf.inner.grid_columnconfigure(1, minsize=0.05 * sizex, weight=1)
-        frame.grid_columnconfigure(2, minsize=0.22 * sizex, weight=1)
-        frame.grid_columnconfigure(3, minsize=0.08 * sizex, weight=1)
-        frame.grid_columnconfigure(4, minsize=0.14 * sizex, weight=1)
-        frame.grid_columnconfigure(5, minsize=0.14 * sizex, weight=1)
-        frame.grid_columnconfigure(6, minsize=0.14 * sizex, weight=1)
-        frame.grid_columnconfigure(7, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(2, minsize=0.22 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(3, minsize=0.08 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(4, minsize=0.14 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(5, minsize=0.14 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(6, minsize=0.14 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(7, minsize=0.2 * sizex * g.settings_dict["scaling"], weight=1)
 
-        frame.grid_rowconfigure(0, minsize=15, weight=0)
-        frame.grid_rowconfigure(1, minsize=15, weight=0)
-        frame.grid_rowconfigure(2, minsize=15, weight=0)
-        frame.grid_rowconfigure(3, minsize=15, weight=0)
-        frame.grid_rowconfigure(4, minsize=15, weight=0)
-        frame.grid_rowconfigure(5, minsize=15, weight=0)
-        frame.grid_rowconfigure(6, minsize=15, weight=0)
-        frame.grid_rowconfigure(7, minsize=15, weight=0)
-        frame.grid_rowconfigure(8, minsize=15, weight=0)
-        frame.grid_rowconfigure(9, minsize=15, weight=0)
-        frame.grid_rowconfigure(10, minsize=15, weight=0)
+        weightt = 0 if g.settings_dict["scaling"] == 1 else 1
+        frame.grid_rowconfigure(0, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(1, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(2, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(3, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(4, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(5, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(6, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(7, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(8, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(9, minsize=15 * g.settings_dict["scaling"], weight=weightt)
+        frame.grid_rowconfigure(10, minsize=15 * g.settings_dict["scaling"], weight=weightt)
         frame.grid_propagate(False)
         # self.frame.update_idletasks()
         frame.pack(fill=tk.BOTH)
@@ -396,25 +408,26 @@ class WatchListWindow:
         btn.btn.grid(row=0, column=2, padx=5)
         btn = btk.MyButtonStyle(frame, "Check VAC", lambda: CVW.MyVacWindow(self))
         btn.btn.grid(row=0, column=3, padx=5)
-        btn = btk.MyButtonStyle(frame, "More Stats", self._open_more_stats)
-        btn.btn.grid(row=0, column=4, padx=5)
         self.btn_switch_speed = btk.MyButtonStyle(frame, "Ban Speed", self._switch_ban_speed)
-        self.btn_switch_speed.btn.grid(row=0, column=5, padx=5)
+        self.btn_switch_speed.btn.grid(row=0, column=4, padx=5)
+        # btn = btk.MyButtonStyle(frame, "Extra", lambda: WEW.MyWlextraWindow(self))
+        btn = btk.MyButtonStyle(frame, "More Stats", self._open_more_stats)
+        btn.btn.grid(row=0, column=5, padx=5)
         frame.pack(side=tk.LEFT)
         self._check_stats()
         frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
         self.stats_players = btk.MyLabelStyle(frame, "Total players: " + str(self._stats["nrpl"]))
-        self.stats_players.frame.config(font=("", 12, "bold"))
+        self.stats_players.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         self.stats_players.frame.grid(row=0, column=0, sticky=tk.W)
         self.stats_banned = btk.MyLabelStyle(frame, "Banned players: " + str(self._stats["ban"]))
-        self.stats_banned.frame.config(font=("", 12, "bold"))
+        self.stats_banned.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         self.stats_banned.frame.grid(row=1, column=0, sticky=tk.W)
         if self._stats["nrpl"] == 0:
             percent = "--.--"
         else:
             percent = round(self._stats["ban"] / self._stats["nrpl"] * 100, 2)
         self.percent = btk.MyLabelStyle(frame, "Percent: " + str(percent) + " %")
-        self.percent.frame.config(font=("", 12, "bold"))
+        self.percent.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         self.percent.frame.grid(row=2, column=0, sticky=tk.W)
         self.btn_lastpage.text.set(">> " + str(self._maxpages))
         frame.pack(side=tk.RIGHT)

@@ -3,6 +3,8 @@ import tkinter as tk
 import subprocess as sp
 import webbrowser as web
 import re
+import math
+import csv
 
 import scapy.all as scpa
 import scapy.layers.http as scplh
@@ -15,6 +17,7 @@ import WatchListWindow as WW
 import LinksWindow as LW
 import SettingsWindow as SW
 import blackTkClasses as btk
+import csvReader as mycsv
 
 
 class MainAppWindow:
@@ -207,29 +210,30 @@ class MainAppWindow:
         if len(to_add):
             try:
                 rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
+                rdr = mycsv.myCSV(rfile)
             except FileNotFoundError:
                 tempwrite = open(g.path_exec_folder + "watchlist", "w", encoding="utf-8")
                 tempwrite.close()
                 try:
                     rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
+                    rdr = mycsv.myCSV(rfile)
                 except:
                     AW.MyAlertWindow(self.window, "Error opening WatchList (read)")
                     return
             except Exception:
                 AW.MyAlertWindow(self.window, "Error opening WatchList (read)")
                 return
-            for line in rfile:
+            rdr.get_next()
+            for line in rdr.reader:
                 player = WP.MyWatchPlayer(line)
                 if player.link in to_add:
                     to_add.remove(player.link)
                     if not len(to_add):
                         break
+            rfile.close()
             try:
-                rfile.close()
-            except Exception:
-                pass
-            try:
-                wfile = open(g.path_exec_folder + "watchlist", "a", encoding="utf-8")
+                wfile = open(g.path_exec_folder + "watchlist", "a", encoding="utf-8", newline="")
+                csvwr = csv.writer(wfile)
             except Exception:
                 AW.MyAlertWindow(self.window, "Error opening WatchList (append)")
                 return
@@ -250,10 +254,11 @@ class MainAppWindow:
                     if not len(name):
                         name = "unnamed"
                     kad = "{} / {} / {}".format(player.k, player.a, player.d)
-                    wfile.write("{} {} {} {}={} ".format(link, "N", dtt, len(name), name))
-                    wfile.write("{}={} {}={} ".format(len(kad), kad, len(map2), map2))
-                    wfile.write("{}={} {}={} ".format(len(str(rank)), rank, len(g.last_server), g.last_server))
-                    wfile.write("{}={} 2=-1\n".format(len(str(mode)), mode))
+                    csvwr.writerow([link, "N", dtt, name, kad, map2, rank, g.last_server, mode, -1, ""])
+                    # wfile.write("{} {} {} {}={} ".format(link, "N", dtt, len(name), name))
+                    # wfile.write("{}={} {}={} ".format(len(kad), kad, len(map2), map2))
+                    # wfile.write("{}={} {}={} ".format(len(str(rank)), rank, len(g.last_server), g.last_server))
+                    # wfile.write("{}={} 2=-1\n".format(len(str(mode)), mode))
                     to_add.remove(player.player.profile)
                     if g.settings_dict["add_to_db"] and self.entry1_url.text.get() != "":
                         # delta = dt.timedelta(hours=g.DEMOS_AGE)
@@ -271,14 +276,14 @@ class MainAppWindow:
                         g.event_add_db.set()
                     if not len(to_add):
                         break
-            try:
-                wfile.close()
-            except Exception:
-                pass
+            wfile.close()
 
     def _open_watchlist(self):
         if g.thread_check_vac.is_alive():
             AW.MyAlertWindow(self.window, "VAC checking in progress, please wait!\n1 player / sec")
+            return
+        if g.thread_export.is_alive():
+            AW.MyAlertWindow(self.window, "Exporting WatchList in progress, please wait!")
             return
         WW.WatchListWindow(self.window)
 
@@ -324,11 +329,11 @@ class MainAppWindow:
         self.btn1_interfaces.btn.grid(row=0, column=0, sticky=tk.W + tk.E, columnspan=3, pady=5, padx=5)
 
         self.btn2_start = btk.MyButtonStyle(self.window, "Start", self.start_stop)
-        self.btn2_start.btn.config(font=("", 16, ""))
+        self.btn2_start.btn.config(font=("", math.ceil(16 * g.settings_dict["scaling"]), ""))
         self.btn2_start.btn.grid(row=0, column=3, columnspan=2, rowspan=2, sticky=tk.NSEW, padx=5, pady=5)
 
         self.label1_dynamic = btk.MyLabelStyle(self.window, "Not looking for anything")
-        self.label1_dynamic.frame.config(borderwidth=10, font=("", 14, "bold"), fg="red")
+        self.label1_dynamic.frame.config(borderwidth=10, font=("", math.ceil(14 * g.settings_dict["scaling"]), "bold"), fg="red")
         self.label1_dynamic.frame.grid(row=1, column=0, columnspan=3)
 
         self.entry1_url = btk.MyEntryStyle(self.window, "")
@@ -382,10 +387,10 @@ class MainAppWindow:
         self.rounds_frame.grid_propagate(False)
 
         self.label4_map = btk.MyLabelStyle(self.window, "Map")
-        self.label4_map.frame.config(font=("", 11, "bold"), fg="green")
+        self.label4_map.frame.config(font=("", math.ceil(11 * g.settings_dict["scaling"]), "bold"), fg="green")
         self.label4_map.frame.grid(row=5, column=3, columnspan=2, sticky=tk.W + tk.E, padx=5)
         self.label5_server = btk.MyLabelStyle(self.window, "Server")
-        self.label5_server.frame.config(font=("", 11, "bold"), fg="pink")
+        self.label5_server.frame.config(font=("", math.ceil(11 * g.settings_dict["scaling"]), "bold"), fg="pink")
         self.label5_server.frame.grid(row=6, column=3, columnspan=2, sticky=tk.W + tk.E, padx=5)
 
         self.btn7_add_wl = btk.MyButtonStyle(self.window, "Add to WatchList", self._addto_watchlist)
@@ -398,21 +403,21 @@ class MainAppWindow:
         self.frame_scorehead.grid(row=4, column=0, columnspan=3, rowspan=6, sticky=tk.NSEW)
 
         self.label_teamct = btk.MyLabelStyle(self.frame_scorehead, "CT")
-        self.label_teamct.frame.config(font=("", 16, "bold"), fg="#00bfff")
+        self.label_teamct.frame.config(font=("", math.ceil(16 * g.settings_dict["scaling"]), "bold"), fg="#00bfff")
         self.label_teamct.frame.grid(row=0, column=0, sticky=tk.NSEW, padx=5)
         self.label_scorect = btk.MyLabelStyle(self.frame_scorehead, "0")
-        self.label_scorect.frame.config(font=("", 16, ""))
+        self.label_scorect.frame.config(font=("", math.ceil(16 * g.settings_dict["scaling"]), ""))
         self.label_scorect.frame.grid(row=0, column=1, sticky=tk.NSEW, padx=5)
         # self.label_map = btk.MyLabelStyle(self.window, "-")
         # self.label_map.frame.grid(row=4, column=3, sticky=tk.W + tk.E, padx=5)
         self.label_scoresep = btk.MyLabelStyle(self.frame_scorehead, "-")
-        self.label_scoresep.frame.config(font=("", 14, ""))
+        self.label_scoresep.frame.config(font=("", math.ceil(14 * g.settings_dict["scaling"]), ""))
         self.label_scoresep.frame.grid(row=0, column=2)
         self.label_scoret = btk.MyLabelStyle(self.frame_scorehead, "0")
-        self.label_scoret.frame.config(font=("", 16, ""))
+        self.label_scoret.frame.config(font=("", math.ceil(16 * g.settings_dict["scaling"]), ""))
         self.label_scoret.frame.grid(row=0, column=3, sticky=tk.NSEW, padx=5)
         self.label_teamt = btk.MyLabelStyle(self.frame_scorehead, "T")
-        self.label_teamt.frame.config(font=("", 16, "bold"), fg="#df2020")
+        self.label_teamt.frame.config(font=("", math.ceil(16 * g.settings_dict["scaling"]), "bold"), fg="#df2020")
         self.label_teamt.frame.grid(row=0, column=4, sticky=tk.NSEW, padx=5)
 
         self.frame_scorehead.grid_columnconfigure(0, minsize=0.35 * 0.8 * sizex, weight=1)
@@ -537,21 +542,21 @@ class MainAppWindow:
         # self.label_sep5 = btk.MyLabelStyle(self.window, "|")
         # self.label_sep5.frame.grid(row=9, column=3, sticky=tk.W + tk.E, padx=5)
 
-        self.frame_stats.grid_columnconfigure(0, minsize=0.05 * 0.8 * sizex, weight=1)
-        self.frame_stats.grid_columnconfigure(1, minsize=0.2125 * 0.8 * sizex, weight=1)
-        self.frame_stats.grid_columnconfigure(2, minsize=0.0875 * 0.8 * sizex, weight=1)
-        self.frame_stats.grid_columnconfigure(3, minsize=0.1375 * 0.8 * sizex, weight=1)
-        self.frame_stats.grid_columnconfigure(4, minsize=0.025 * 0.8 * sizex, weight=1)
-        self.frame_stats.grid_columnconfigure(5, minsize=0.1375 * 0.8 * sizex, weight=1)
-        self.frame_stats.grid_columnconfigure(6, minsize=0.0875 * 0.8 * sizex, weight=1)
-        self.frame_stats.grid_columnconfigure(7, minsize=0.2125 * 0.8 * sizex, weight=1)
-        self.frame_stats.grid_columnconfigure(8, minsize=0.05 * 0.8 * sizex, weight=1)
+        self.frame_stats.grid_columnconfigure(0, minsize=0.05 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_columnconfigure(1, minsize=0.2125 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_columnconfigure(2, minsize=0.0875 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_columnconfigure(3, minsize=0.1375 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_columnconfigure(4, minsize=0.025 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_columnconfigure(5, minsize=0.1375 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_columnconfigure(6, minsize=0.0875 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_columnconfigure(7, minsize=0.2125 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_columnconfigure(8, minsize=0.05 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
 
-        self.frame_stats.grid_rowconfigure(0, minsize=30, weight=1)
-        self.frame_stats.grid_rowconfigure(1, minsize=30, weight=1)
-        self.frame_stats.grid_rowconfigure(2, minsize=30, weight=1)
-        self.frame_stats.grid_rowconfigure(3, minsize=30, weight=1)
-        self.frame_stats.grid_rowconfigure(4, minsize=30, weight=1)
+        self.frame_stats.grid_rowconfigure(0, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_rowconfigure(1, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_rowconfigure(2, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_rowconfigure(3, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.frame_stats.grid_rowconfigure(4, minsize=30 * g.settings_dict["scaling"], weight=1)
         self.frame_stats.grid_propagate(False)
 
         self.frame_kills = tk.Frame(self.window, bg="#101010", bd=0)  # width=sizex, height=20
@@ -621,19 +626,19 @@ class MainAppWindow:
         self.label_ded10 = btk.MyLabelStyle(self.frame_kills, "")
         self.label_ded10.frame.grid(row=4, column=6, sticky=tk.W + tk.E, padx=5)
 
-        self.frame_kills.grid_columnconfigure(0, minsize=0.2 * 0.8 * sizex, weight=1)
-        self.frame_kills.grid_columnconfigure(1, minsize=0.09 * 0.8 * sizex, weight=1)
-        self.frame_kills.grid_columnconfigure(2, minsize=0.2 * 0.8 * sizex, weight=1)
-        self.frame_kills.grid_columnconfigure(3, minsize=0.02 * 0.8 * sizex, weight=1)
-        self.frame_kills.grid_columnconfigure(4, minsize=0.2 * 0.8 * sizex, weight=1)
-        self.frame_kills.grid_columnconfigure(5, minsize=0.09 * 0.8 * sizex, weight=1)
-        self.frame_kills.grid_columnconfigure(6, minsize=0.2 * 0.8 * sizex, weight=1)
+        self.frame_kills.grid_columnconfigure(0, minsize=0.2 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_columnconfigure(1, minsize=0.09 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_columnconfigure(2, minsize=0.2 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_columnconfigure(3, minsize=0.02 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_columnconfigure(4, minsize=0.2 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_columnconfigure(5, minsize=0.09 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_columnconfigure(6, minsize=0.2 * 0.8 * sizex * g.settings_dict["scaling"], weight=1)
 
-        self.frame_kills.grid_rowconfigure(0, minsize=30, weight=1)
-        self.frame_kills.grid_rowconfigure(1, minsize=30, weight=1)
-        self.frame_kills.grid_rowconfigure(2, minsize=30, weight=1)
-        self.frame_kills.grid_rowconfigure(3, minsize=30, weight=1)
-        self.frame_kills.grid_rowconfigure(4, minsize=30, weight=1)
+        self.frame_kills.grid_rowconfigure(0, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_rowconfigure(1, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_rowconfigure(2, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_rowconfigure(3, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.frame_kills.grid_rowconfigure(4, minsize=30 * g.settings_dict["scaling"], weight=1)
         self.frame_kills.grid_propagate(False)
 
         for i2 in range(1, 11):
@@ -644,14 +649,14 @@ class MainAppWindow:
                 getattr(self, "label_player" + str(i2)).frame.config(cursor="hand2", anchor=tk.E, fg="#df2020")
             getattr(self, "label_player" + str(i2)).frame.bind("<Button-1>", lc_event1)
             getattr(self, "label_player" + str(i2)).frame.bind("<Button-3>", rc_event2)
-            getattr(self, "label_scorep" + str(i2)).frame.config(font=("", 12, ""))
+            getattr(self, "label_scorep" + str(i2)).frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), ""))
             getattr(self, "label_rank" + str(i2)).frame.config(fg="#aaff00")
 
-        self.window.grid_columnconfigure(0, minsize=0.34 * sizex, weight=1)
-        self.window.grid_columnconfigure(1, minsize=0.31 * sizex, weight=1)
-        self.window.grid_columnconfigure(2, minsize=0.15 * sizex, weight=1)
-        self.window.grid_columnconfigure(3, minsize=0.1 * sizex, weight=1)
-        self.window.grid_columnconfigure(4, minsize=0.1 * sizex, weight=1)
+        self.window.grid_columnconfigure(0, minsize=0.34 * sizex * g.settings_dict["scaling"], weight=1)
+        self.window.grid_columnconfigure(1, minsize=0.31 * sizex * g.settings_dict["scaling"], weight=1)
+        self.window.grid_columnconfigure(2, minsize=0.15 * sizex * g.settings_dict["scaling"], weight=1)
+        self.window.grid_columnconfigure(3, minsize=0.1 * sizex * g.settings_dict["scaling"], weight=1)
+        self.window.grid_columnconfigure(4, minsize=0.1 * sizex * g.settings_dict["scaling"], weight=1)
         self.window.grid_propagate(False)
 
         # self.window.grid_rowconfigure(0, minsize=0.06 * sizey, weight=1)
@@ -659,10 +664,10 @@ class MainAppWindow:
         # self.window.grid_rowconfigure(2, minsize=0.1 * sizey, weight=1)
         # self.window.grid_rowconfigure(3, minsize=0.05 * sizey, weight=1)
         # self.window.grid_rowconfigure(4, minsize=0.1 * sizey, weight=1)
-        self.window.grid_rowconfigure(5, minsize=30, weight=1)
-        self.window.grid_rowconfigure(6, minsize=30, weight=1)
-        self.window.grid_rowconfigure(7, minsize=30, weight=1)
-        self.window.grid_rowconfigure(8, minsize=30, weight=1)
-        self.window.grid_rowconfigure(9, minsize=30, weight=1)
+        self.window.grid_rowconfigure(5, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(6, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(7, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(8, minsize=30 * g.settings_dict["scaling"], weight=1)
+        self.window.grid_rowconfigure(9, minsize=30 * g.settings_dict["scaling"], weight=1)
 
         self.window.update_idletasks()

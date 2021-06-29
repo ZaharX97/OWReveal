@@ -1,10 +1,12 @@
 import tkinter as tk
+import math
 
 import myglobals as g
 import functions as f
 import WatchPlayer as WP
 import AlertWindow as AW
 import blackTkClasses as btk
+import csvReader as mycsv
 
 
 class WatchStatsWindow:
@@ -77,10 +79,12 @@ class WatchStatsWindow:
     def _check_more_stats(self):
         try:
             rfile = open(g.path_exec_folder + "watchlist", "r", encoding="utf-8")
+            rdr = mycsv.myCSV(rfile)
+            rdr.get_next()
         except:
             AW.MyAlertWindow(self.window, "Cannot read Watchlist")
             return
-        for line in rfile:
+        for line in rdr.reader:
             player = WP.MyWatchPlayer(line)
             if player.banned == "Y":
                 self.map_dict_b[player.map] = self.map_dict_b[player.map] + 1 if self.map_dict_b.get(player.map) else 1
@@ -145,22 +149,22 @@ class WatchStatsWindow:
 
         frame = tk.Frame(self.window, bg="#101010", width=sizex, height=20)
         label = btk.MyLabelStyle(frame, "RANKS")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=0, padx=5, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "MAPS")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=1, padx=5, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "SERVERS")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=2, padx=5, sticky=tk.W + tk.E)
         label = btk.MyLabelStyle(frame, "MODES")
-        label.frame.config(font=("", 12, "bold"))
+        label.frame.config(font=("", math.ceil(12 * g.settings_dict["scaling"]), "bold"))
         label.frame.grid(row=0, column=3, padx=5, sticky=tk.W + tk.E)
 
-        frame.grid_columnconfigure(0, minsize=0.1 * sizex, weight=1)
-        frame.grid_columnconfigure(1, minsize=0.15 * sizex, weight=1)
-        frame.grid_columnconfigure(2, minsize=0.25 * sizex, weight=1)
-        frame.grid_columnconfigure(3, minsize=0.2 * sizex, weight=1)
+        frame.grid_columnconfigure(0, minsize=0.1 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(1, minsize=0.15 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(2, minsize=0.25 * sizex * g.settings_dict["scaling"], weight=1)
+        frame.grid_columnconfigure(3, minsize=0.2 * sizex * g.settings_dict["scaling"], weight=1)
 
         frame.grid_propagate(False)
         frame.pack(fill=tk.X)
@@ -196,10 +200,10 @@ class WatchStatsWindow:
 
         self._show_stats(nrplayers)
 
-        self.stats_frame.grid_columnconfigure(0, minsize=0.16 * sizex, weight=1)
-        self.stats_frame.grid_columnconfigure(1, minsize=0.31 * sizex, weight=1)
-        self.stats_frame.grid_columnconfigure(2, minsize=0.24 * sizex, weight=1)
-        self.stats_frame.grid_columnconfigure(3, minsize=0.22 * sizex, weight=1)
+        self.stats_frame.grid_columnconfigure(0, minsize=0.16 * sizex * g.settings_dict["scaling"], weight=1)
+        self.stats_frame.grid_columnconfigure(1, minsize=0.31 * sizex * g.settings_dict["scaling"], weight=1)
+        self.stats_frame.grid_columnconfigure(2, minsize=0.24 * sizex * g.settings_dict["scaling"], weight=1)
+        self.stats_frame.grid_columnconfigure(3, minsize=0.22 * sizex * g.settings_dict["scaling"], weight=1)
         # self.stats_frame.grid_columnconfigure(4, minsize=0.06 * sizex, weight=1)
 
         # frame.grid_propagate(False)

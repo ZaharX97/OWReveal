@@ -8,13 +8,11 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.4.4** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.5** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
 	* created a small site to show suspects from all people using this app  
 	* [zahar.one/owrev](https://zahar.one/owrev)  
-	* fixed [issue #12](https://github.com/ZaharX97/OWReveal/issues/12), net adapter is saved to settings  
-	* fixed [issue #14](https://github.com/ZaharX97/OWReveal/issues/14), right click to copy steamid  
-	* added some kind of format to renaming demos, [more info](https://github.com/ZaharX97/OWReveal#demo-rename-format)  
-	* fixed [issue #15](https://github.com/ZaharX97/OWReveal/issues/15), right click on the link to copy demo name
+	* hopefully fixed [issue #11](https://github.com/ZaharX97/OWReveal/issues/11), edit the scaling in ow_config  
+	* changed watchlist format to csv  
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -63,14 +61,13 @@ more info here: [time format codes](https://docs.python.org/3/library/datetime.h
   
 ## Older Versions: 
 
-* v**4.3.6** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.3.6)  
+* v**4.4.4** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.4.4)  
 	* created a small site to show suspects from all people using this app  
 	* [zahar.one/owrev](https://zahar.one/owrev)  
-	* fixed: only 1 suspect was added to site, then a restart was needed  
-	* fixed: check vac didnt work in v4.3  
-	* fixed: unranked gamed didnt show team scores  
-	* added demo date
-	* (new) fixed: stats in wingman unranked (who plays that) were not shown correctly
+	* fixed [issue #12](https://github.com/ZaharX97/OWReveal/issues/12), net adapter is saved to settings  
+	* fixed [issue #14](https://github.com/ZaharX97/OWReveal/issues/14), right click to copy steamid  
+	* added some kind of format to renaming demos, [more info](https://github.com/ZaharX97/OWReveal#demo-rename-format)  
+	* fixed [issue #15](https://github.com/ZaharX97/OWReveal/issues/15), right click on the link to copy demo name
   
 * v**3.1.5** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.5)  
   * changed npcap link to main site  
