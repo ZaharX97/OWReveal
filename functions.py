@@ -259,7 +259,7 @@ def import_settings_extra():
             if x == g.settings_dict["net_interface"]:
                 goodiface = True
                 break
-        if not goodiface or g.settings_dict["net_interface"] != g.app.btn1_interfaces.menu.entrycget(0, "label"):
+        if not goodiface and g.settings_dict["net_interface"] != g.app.btn1_interfaces.menu.entrycget(0, "label"):
             g.settings_dict.update({"net_interface": ""})
         else:
             g.app.btn1_interfaces.text.set(g.settings_dict["net_interface"])

@@ -27,9 +27,10 @@ class MainAppWindow:
         if self.btn1_interfaces.text.get() == "Select one interface":
             AW.MyAlertWindow(self.window, "You need to select one network interface")
             return
-        g.settings_dict.update({"net_interface": f.return_interface(self)})
+        iface = f.return_interface(self)
+        g.settings_dict.update({"net_interface": iface if iface else self.btn1_interfaces.menu.entrycget(0, "label")})
         if self.btn2_start.text.get() == "Start":
-            g.thread_sniff = scpa.AsyncSniffer(iface=f.return_interface(self),
+            g.thread_sniff = scpa.AsyncSniffer(iface=iface,
                                                lfilter=lambda y: y.haslayer(scplh.HTTPRequest),
                                                prn=f.process_packet(self), store=False)
             g.thread_sniff.start()
