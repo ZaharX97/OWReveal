@@ -117,13 +117,15 @@ def find_file_path(exe=False):
 
 
 def get_interfaces():
-    if platform.platform().lower().find("windows") != -1:
-        res = scpa.get_windows_if_list()
-    else:
-        res = scpa.get_if_list()
-    interfaces_list = ["None  (select this if not sure)"]
-    for x in res:
-        interfaces_list.append(x["name"])
+    # if platform.platform().lower().find("windows") != -1:
+    #     res = scpa.get_windows_if_list() # doesnt exist anymore in scapy 2.4.5
+    # else:
+    #     res = scpa.get_if_list()
+    res = sorted(list(scpa.IFACES[x].name for x in scpa.IFACES))
+    # for x in res:
+    #     if x.find("\\Device\\") != -1:
+    #         res.remove(x)
+    interfaces_list = ["None  (select this if not sure)"] + res
     return interfaces_list
 
 
@@ -251,16 +253,13 @@ def import_settings_extra():
     g.RANK_TRANSLATE_WL = g.RANK_TRANSLATE_IMG
 
     if g.settings_dict["net_interface"] != "":
-        if platform.platform().lower().find("windows") != -1:
-            iface_list = scpa.get_windows_if_list()
-        else:
-            iface_list = scpa.get_if_list()
+        iface_list = list(scpa.IFACES[x].name for x in scpa.IFACES)
         goodiface = False
         for x in iface_list:
-            if x["name"] == g.settings_dict["net_interface"]:
+            if x == g.settings_dict["net_interface"]:
                 goodiface = True
                 break
-        if not goodiface:
+        if not goodiface or g.settings_dict["net_interface"] != g.app.btn1_interfaces.menu.entrycget(0, "label"):
             g.settings_dict.update({"net_interface": ""})
         else:
             g.app.btn1_interfaces.text.set(g.settings_dict["net_interface"])

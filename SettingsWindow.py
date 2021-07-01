@@ -194,7 +194,7 @@ class SettingsWindow:
         self.entry_steam_key.frame.config(state="normal")
         self.entry_steam_key.frame.grid(row=10, column=1, sticky=tk.W + tk.E, padx=5, columnspan=3)
 
-        self.btn_save = btk.MyButtonStyle(self.window, "Save to file", self._update_on_save)
+        self.btn_save = btk.MyButtonStyle(self.window, "Save settings", self._update_on_save)
         self.btn_save.btn.grid(row=11, column=3, sticky=tk.E, padx=5, pady=5)
 
         self.btn_analyze = btk.MyButtonStyle(self.window, "Analyze a demo", self._analyze_demo)

@@ -201,6 +201,8 @@ class MainAppWindow:
             AW.MyAlertWindow(self.window, "VAC checking in progress, please wait!\n1 player / sec")
             return
         to_add = set()
+        already_in = dict()
+        already_in_text = ""
         for i2 in range(1, 11):
             if getattr(self, "btn_rad" + str(i2)).value.get() == tk.TRUE:
                 link = g.profile_links[getattr(self, "label_player" + str(i2)).frame]
@@ -224,9 +226,15 @@ class MainAppWindow:
                 AW.MyAlertWindow(self.window, "Error opening WatchList (read)")
                 return
             rdr.get_next()
+            counter = 0
             for line in rdr.reader:
+                counter += 1
                 player = WP.MyWatchPlayer(line)
                 if player.link in to_add:
+                    already_in.update({player.link: {
+                        "index": counter,
+                        "player": player
+                    }})
                     to_add.remove(player.link)
                     if not len(to_add):
                         break
@@ -276,7 +284,11 @@ class MainAppWindow:
                         g.event_add_db.set()
                     if not len(to_add):
                         break
+                elif already_in.get(player.player.profile):
+                    already_in_text += f" {player.player.name}  exists at  #{already_in[player.player.profile]['index']}  from {already_in[player.player.profile]['player'].date}   \n"
             wfile.close()
+            if already_in_text != "":
+                AW.MyAlertWindow(self.window, already_in_text)
 
     def _open_watchlist(self):
         if g.thread_check_vac.is_alive():

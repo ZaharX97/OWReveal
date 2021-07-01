@@ -86,7 +86,6 @@ class MyWatchPlayer:
             self.ban_speed = int(self.data[9])
         except IndexError:
             self.ban_speed = -1
-            self.comm = self.data[9]
         try:
             self.comm = self.data[10]
         except IndexError:
