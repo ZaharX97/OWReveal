@@ -22,7 +22,7 @@ CSGO Overwatch revealer by sniffing packets
 
 ## How to build a .exe from this?
 1. Install the latest python v3
-2. Install pyinstaller
+2. Install pyinstaller and all needed modules (scapy / requests / Pillow / mysql-connector)
 3. Download this project and extract into a folder
 4. Open cmd/powershell in that folder
 5.
@@ -46,6 +46,9 @@ b) For app version <= 4.1.x use
 
 **Q**: What is with the _console_ version of the .exe?  
 **A**: The one with _console_ opens a cmd along and prints errors or whatever print statements I forgot to remove  
+
+**Q**: What extra modules does this app use?  
+**A**: (scapy / requests / Pillow / mysql-connector)  
 
 **Q**: Not a question, but k/d/a in your app is wrong  
 **A**: Could be, in my app it's displayed as k/a/d and I'm not sure I covered all edge cases  
