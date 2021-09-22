@@ -1,10 +1,14 @@
 import myglobals as g
 
 match_started = False
+ranks_done = False
+game_mode_done = False
 round_current = 1
+round_switch = 0
 team_score = {2: 0, 3: 0}
 game_mode = 0
 max_players = 0
+actual_players = 0
 kills_round_list = list()
 PLAYERS = dict()
 BOTS = dict()
@@ -69,16 +73,18 @@ class MyPlayer:
 
 
 def new_demo(data):
-    global match_started, round_current, team_score, max_players, PLAYERS, BOTS, takeovers, STATS, kills_round_list, game_mode
+    global match_started, round_current, team_score, max_players, PLAYERS, BOTS, takeovers, STATS, kills_round_list, game_mode, ranks_done, game_mode_done
     match_started = False
+    ranks_done = False
+    game_mode_done = False
     round_current = 1
     team_score = {2: 0, 3: 0}
     max_players = 0
-    game_mode = 0
-    kills_round_list = list()
-    PLAYERS = dict()
-    BOTS = dict()
-    takeovers = dict()
+    kills_round_list.clear()
+    PLAYERS.clear()
+    BOTS.clear()
+    takeovers.clear()
+    RANK_STATS.clear()
     STATS = {
         "otherdata": {
             "kills": {},
@@ -113,7 +119,7 @@ def player_team(data):
                     rp.start_team = 3
                 elif data["team"] == 3:
                     rp.start_team = 2
-        elif game_mode in (-7, 7):
+        elif game_mode in (-7, 7, 0.1, 6.1):
             if round_current <= 8:
                 if data["team"] in (2, 3):
                     rp.start_team = data["team"]
@@ -141,13 +147,13 @@ def player_death(data):
         # print(data)
         krl_d = d
         if not d:
-            if not((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode in (-7, 7) and round_current <= 8)):
+            if not((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode in (-7, 7, 0.1, 6.1) and round_current <= 8)):
                 df = 2 if df == 3 else 3
             krl_d = MyPlayer(data=g.demo_stats._players_by_uid[data["userid"]], ui=True, team=df)
             krl_d.name = f"BOT {krl_d.name}"
         krl_k = k
         if not k:
-            if not ((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode in (-7, 7) and round_current <= 8)):
+            if not ((game_mode in (0, 6) and (round_current <= 15 or (round_current > 30 and round_current % 6 in {1, 2, 3}))) or (game_mode in (-7, 7, 0.1, 6.1) and round_current <= 8)):
                 kf = 2 if kf == 3 else 3
             if data["attacker"] == 0:
                 krl_k = krl_d
@@ -201,7 +207,7 @@ def player_spawn(data):
                     rp.start_team = 3
                 elif data["teamnum"] == 3:
                     rp.start_team = 2
-        elif game_mode in (-7, 7):
+        elif game_mode in (-7, 7, 0.1, 6.1):
             if round_current <= 8:
                 if data["teamnum"] in (2, 3):
                     rp.start_team = data["teamnum"]
@@ -246,7 +252,7 @@ def round_end(data):
                     team_score[3] += 1
                 elif data["winner"] == 3:
                     team_score[2] += 1
-        elif game_mode in (-7, 7):
+        elif game_mode in (-7, 7, 0.1, 6.1):
             if round_current <= 8:
                 if data["winner"] == 2:
                     team_score[2] += 1
@@ -284,7 +290,7 @@ def cmd_dem_stop(data):
         for p2 in sts.pscore:
             if not p2.ttr:
                 rnd = int(rnd)
-                if (game_mode in (0, 6) and (rnd <= 15 or (rnd > 30 and rnd % 6 in {1, 2, 3}))) or (game_mode in (-7, 7) and rnd <= 8):
+                if (game_mode in (0, 6) and (rnd <= 15 or (rnd > 30 and rnd % 6 in {1, 2, 3}))) or (game_mode in (-7, 7, 0.1, 6.1) and rnd <= 8):
                     p2.ttr = p2.player.start_team
                 else:
                     p2.ttr = 2 if p2.player.start_team == 3 else 3
@@ -310,58 +316,56 @@ def update_pinfo(data):
         max_players = len(PLAYERS)
 
 
-def new_demo_ranks(data):
-    global RANK_STATS
-    g.ranks_done = False
-    RANK_STATS = dict()
-
-
 def get_ranks(data):
-    if g.ranks_done:
-        g.ranks_done = False
-        g.demo_ranks.demo_finished = True
+    global ranks_done, PLAYERS, actual_players
+    if ranks_done:
+        g.demo_stats.unsubscribe_from_event("parser_new_tick", get_ranks)
+        if game_mode_done:
+            g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
     else:
-        res_table = g.demo_ranks.get_resource_table()
+        res_table = g.demo_stats.get_resource_table()
         if not res_table:
             return
         else:
             res_table = res_table.props
-        for player in g.demo_ranks._players_by_uid.values():
-            if player.xuid == 0:
+        for player in PLAYERS.values():
+            if player.userinfo.xuid == 0:
                 continue
-            if not RANK_STATS.get(player.xuid):
-                RANK_STATS.update({player.xuid: None})
-            if RANK_STATS[player.xuid] is None:
-                key = str(player.entity_id).zfill(3)
+            if not RANK_STATS.get(player.userinfo.xuid):
+                RANK_STATS.update({player.userinfo.xuid: None})
+            if RANK_STATS[player.userinfo.xuid] is None:
+                key = str(player.userinfo.entity_id).zfill(3)
                 connected = res_table["m_bConnected"][key]
                 in_team = res_table["m_iTeam"][key]
                 if not (in_team == 2 or in_team == 3) or not connected:
-                    RANK_STATS.pop(player.xuid)
+                    RANK_STATS.pop(player.userinfo.xuid)
                     continue
                 if connected:
                     rank = res_table["m_iCompetitiveRanking"][key]
-                    RANK_STATS.update({player.xuid: rank})
-        if len(RANK_STATS) == STATS["otherdata"]["nrplayers"]:
+                    RANK_STATS.update({player.userinfo.xuid: rank})
+        if len(RANK_STATS) == actual_players:
+            ranks_done = True
             for ranks in RANK_STATS.values():
                 if ranks is None:
+                    ranks_done = False
                     break
-                g.ranks_done = True
 
 
 def get_game_mode(data):
-    global game_mode
+    global game_mode, PLAYERS, game_mode_done
     gmd = dict()
-    if game_mode == 0:
+    if game_mode in (-7, 0, 0.1):
         if g.demo_stats.header.server_name.upper().find("VALVE") == -1:
-            game_mode = 0
-            g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
+            game_mode_done = True
+            if ranks_done:
+                g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
             g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
             return
         res_table = g.demo_stats.get_resource_table()
-        if res_table and len(PLAYERS) > 1:
+        if res_table and len(PLAYERS) >= actual_players - 1:
             for player in PLAYERS.values():
-                game_mode = res_table.props["m_iCompetitiveRankType"][str(player.userinfo.entity_id).zfill(3)]
-                gmd.update({game_mode: 1 if not gmd.get(game_mode) else gmd.get(game_mode) + 1})
+                game_mode2 = res_table.props["m_iCompetitiveRankType"][str(player.userinfo.entity_id).zfill(3)]
+                gmd.update({game_mode2: 1 if not gmd.get(game_mode2) else gmd.get(game_mode2) + 1})
                 # if game_mode != -1:
                 #     g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
                 #     g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
@@ -369,21 +373,66 @@ def get_game_mode(data):
             # print(gmd)
             for x in sorted(gmd.keys(), reverse=True):
                 # print(x, len(PLAYERS.values()))
-                game_mode = x
-                if game_mode != 0:
-                    g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
+                game_mode2 = x
+                if game_mode2 != 0:
+                    game_mode = game_mode + game_mode2 * 2 if game_mode2 == 7 else game_mode + game_mode2
+                    game_mode_done = True
+                    if ranks_done:
+                        g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
                     g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
                 else:
                     if not match_started:
                         g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
                         g.demo_stats.subscribe_to_event("gevent_begin_new_match", get_game_mode)
                     elif match_started:
-                        g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
+                        game_mode_done = True
+                        if ranks_done:
+                            g.demo_stats.unsubscribe_from_event("packet_svc_PacketEntities")
                         g.demo_stats.unsubscribe_from_event("parser_new_tick", get_game_mode)
                         g.demo_stats.unsubscribe_from_event("gevent_begin_new_match", get_game_mode)
-                        if len(PLAYERS) <= 4:
-                            game_mode = -7
                 break
+
+#   first passing > looking for round switch and max players to determine game mode
+
+
+def new_demo_gamemode(data):
+    global round_switch, game_mode, max_players, PLAYERS, BOTS, match_started, round_current, actual_players
+    match_started = False
+    round_current = 1
+    round_switch = 0
+    game_mode = 0
+    max_players = 0
+    actual_players = 0
+    PLAYERS.clear()
+    BOTS.clear()
+
+
+def round_announce_last_round_half(data):
+    global round_switch, round_current
+    round_switch = round_current + 1
+
+
+def cmd_dem_stop_gm(data):
+    global max_players, actual_players, game_mode, round_switch
+    actual_players = max_players
+    if max_players not in (4, 10):
+        if max_players < 4:
+            max_players = 4
+        else:
+            max_players = 10
+    if max_players == 4:
+        game_mode = -7
+    elif max_players == 10:
+        if round_switch == 9:
+            game_mode += 0.1
+        elif round_switch == 16:
+            game_mode = 0
+    # wingman = 7
+    # wingman unranked = -7
+    # ranked long match = 6
+    # ranked short match = 6.1
+    # unranked long match = 0
+    # unranked short match = 0.1
 
 
 def _reset_pstats():

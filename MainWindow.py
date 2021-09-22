@@ -49,7 +49,7 @@ class MainAppWindow:
         if stats:
             indext = 6
             indexct = 1
-            if (g.demo_mode in (0, 6) and (stats <= 15 or (stats > 30 and stats % 6 in {1, 2, 3}))) or (g.demo_mode in (-7, 7) and stats <= 8):
+            if (g.demo_mode in (0, 6) and (stats <= 15 or (stats > 30 and stats % 6 in {1, 2, 3}))) or (g.demo_mode in (-7, 7, 0.1, 6.1) and stats <= 8):
                 self.label_scorect.text.set(g.demo_stats[stats].score_team3)
                 self.label_scoret.text.set(g.demo_stats[stats].score_team2)
                 # indext = 6
@@ -86,7 +86,7 @@ class MainAppWindow:
                 getattr(self, "label_rank" + str(index_to_use)).frame.config(image=g.RANK_TRANSLATE_IMG[prank])
                 getattr(self, "label_scorep" + str(index_to_use)).text.set(kda)
                 getattr(self, "btn_rad" + str(index_to_use)).btn.grid()
-            if g.demo_mode in (0, 6) and (indext % 5 != 1 or indexct % 5 != 1):
+            if g.demo_mode in (0, 0.1, 6, 6.1) and (indext % 5 != 1 or indexct % 5 != 1):
                 while indext % 5 != 1 or indexct % 5 != 1:
                     if indext % 5 != 1:
                         getattr(self, "label_player" + str(indext)).text.set("")
@@ -141,7 +141,7 @@ class MainAppWindow:
                 # print(data)
                 # T = fg="#df2020" // CT = fg="#00bfff"
                 # 2 = "T" // 3 = "CT"
-                if (g.demo_mode in (0, 6) and stats <= 15) or (g.demo_mode in (-7, 7) and stats <= 8):
+                if (g.demo_mode in (0, 6) and stats <= 15) or (g.demo_mode in (-7, 7, 0.1, 6.1) and stats <= 8):
                     color = "#00bfff" if atk.start_team == 3 else "#df2020"
                 else:
                     color = "#00bfff" if atk.start_team == 2 else "#df2020"
@@ -153,7 +153,7 @@ class MainAppWindow:
                     getattr(self, f"label_atk{str(kills + 1)}").frame.config(anchor=tk.CENTER)
                 # data["weapon"] = "sawedoff"
                 getattr(self, "label_weapon{}".format(str(kills + 1))).text.set(g.WEAPON_TRANSLATE.get(data["weapon"], "unknown"))
-                if (g.demo_mode in (0, 6) and stats <= 15) or (g.demo_mode in (-7, 7) and stats <= 8):
+                if (g.demo_mode in (0, 6) and stats <= 15) or (g.demo_mode in (-7, 7, 0.1, 6.1) and stats <= 8):
                     color = "#00bfff" if ded.start_team == 3 else "#df2020"
                 else:
                     color = "#00bfff" if ded.start_team == 2 else "#df2020"

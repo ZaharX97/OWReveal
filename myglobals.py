@@ -64,8 +64,10 @@ RANK_TRANSLATE_TEXT = {
 # }
 MODE_TRANSLATE = {
     -7: "Wingman Unranked",
-    0: "Unranked",
-    6: "Competitive",
+    0: "Unranked Long",
+    0.1: "Unranked Short",
+    6: "Competitive Long",
+    6.1: "Competitive Short",
     7: "Wingman"
 }
 WEAPON_TRANSLATE = {
@@ -126,7 +128,7 @@ NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 DEMOS_AGE = 24 * 3
 
-VERSION = "4.5.2"
+VERSION = "4.5.3"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"
@@ -146,9 +148,7 @@ demo_stats = None
 demo_nrplayers = 0
 # expected_players = 10
 demo_mode = 0
-demo_ranks = None
 demo_name = ""
-ranks_done = False
 npcap_link = "https://nmap.org/npcap/"
 steam_bans_api = "https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key="
 vac_delay = settings_dict["vac_delay"]
@@ -167,5 +167,10 @@ event_check_vac = t.Event()
 app = None
 
 dbconfig = {
-    "CENSORED"
+    "user": "insert_sus",
+    "password": "FQXELksd8krohTJ&8HK59%h4Suu$t6Hc4BCr3qFz",
+    "host": "zahar.one",
+    "database": "owrev",
+    "raise_on_warnings": True,
+    "charset": "utf8mb4"
 }

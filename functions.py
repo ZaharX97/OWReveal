@@ -326,9 +326,29 @@ def download_from_link(link, button):
 def analyze_demo(path, button):
     # global g.demo_stats, g.demo_nrplayers
     button.text.set("analyzing...")
+
+    g.demo_stats = dp.DemoParser(path, ent="NONE")
+    g.demo_stats.subscribe_to_event("parser_start", my.new_demo_gamemode)
+    g.demo_stats.subscribe_to_event("gevent_begin_new_match", my.begin_new_match)
+    g.demo_stats.subscribe_to_event("gevent_round_announce_last_round_half", my.round_announce_last_round_half)
+    g.demo_stats.subscribe_to_event("gevent_round_officially_ended", my.round_officially_ended)
+    g.demo_stats.subscribe_to_event("parser_update_pinfo", my.update_pinfo)
+    g.demo_stats.subscribe_to_event("cmd_dem_stop", my.cmd_dem_stop_gm)
+
+    try:
+        g.demo_stats.parse()
+    except Exception as err:
+        AW.MyAlertWindow(g.app.window,
+                         f"Error parsing demo!\n{err}\nPlease open a new issue with the download link for the demo")
+        button.text.set("Download DEMO")
+        return
     g.demo_stats = dp.DemoParser(path, ent="STATS")
+    # g.demo_stats.unsubscribe_from_event("parser_start", my.new_demo_gamemode)
+    # g.demo_stats.unsubscribe_from_event("gevent_round_announce_last_round_half", my.round_announce_last_round_half)
+    # g.demo_stats.unsubscribe_from_event("cmd_dem_stop", my.cmd_dem_stop_gm)
     g.demo_stats.subscribe_to_event("parser_start", my.new_demo)
     g.demo_stats.subscribe_to_event("parser_new_tick", my.get_game_mode)
+    g.demo_stats.subscribe_to_event("parser_new_tick", my.get_ranks)
     g.demo_stats.subscribe_to_event("gevent_player_team", my.player_team)
     g.demo_stats.subscribe_to_event("gevent_player_death", my.player_death)
     g.demo_stats.subscribe_to_event("gevent_player_spawn", my.player_spawn)
@@ -343,26 +363,16 @@ def analyze_demo(path, button):
         g.demo_stats.parse()
     except Exception as err:
         AW.MyAlertWindow(g.app.window,
-                         f"Error parsing demo!\n{err}\nPlease open a new issue with the download link for the demo")
+                         f"Error parsing demo stats!\n{err}\nPlease open a new issue with the download link for the demo")
         button.text.set("Download DEMO")
         return
-    g.demo_ranks = dp.DemoParser(path, ent="STATS")
-    g.demo_ranks.subscribe_to_event("parser_start", my.new_demo_ranks)
-    g.demo_ranks.subscribe_to_event("parser_new_tick", my.get_ranks)
-    try:
-        g.demo_ranks.parse()
-    except Exception:
-        AW.MyAlertWindow(g.app.window, "Error parsing demo ranks\nStats are OK")
-        for player in my.PLAYERS.values():
-            player.rank = 0
-    g.last_server = g.demo_ranks.header.server_name[:g.demo_ranks.header.server_name.find("(") - 1]
+    g.last_server = g.demo_stats.header.server_name[:g.demo_stats.header.server_name.find("(") - 1]
     if g.last_server.find("Valve CS:GO ") != -1:
         g.last_server = g.last_server[12:]
     stringsearch = g.last_server.find(" Server")
     if stringsearch != -1:
         g.last_server = g.last_server[:stringsearch]
-    g.demo_ranks = my.RANK_STATS
-    for xuid, rank in g.demo_ranks.items():
+    for xuid, rank in my.RANK_STATS.items():
         for player in my.PLAYERS.values():
             if xuid == player.userinfo.xuid:
                 player.rank = rank
