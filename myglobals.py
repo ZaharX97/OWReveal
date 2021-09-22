@@ -128,7 +128,7 @@ NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 DEMOS_AGE = 24 * 3
 
-VERSION = "4.5.3"
+VERSION = "4.5.4"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"
@@ -167,10 +167,5 @@ event_check_vac = t.Event()
 app = None
 
 dbconfig = {
-    "user": "insert_sus",
-    "password": "FQXELksd8krohTJ&8HK59%h4Suu$t6Hc4BCr3qFz",
-    "host": "zahar.one",
-    "database": "owrev",
-    "raise_on_warnings": True,
-    "charset": "utf8mb4"
+    "CENSORED"
 }
