@@ -63,11 +63,11 @@ RANK_TRANSLATE_TEXT = {
 #     18: "(*☢*)",
 # }
 MODE_TRANSLATE = {
-    -7: "Wingman Unranked",
-    0: "Unranked Long",
-    0.1: "Unranked Short",
-    6: "Competitive Long",
-    6.1: "Competitive Short",
+    -7: "Wingman U",
+    0: "Unranked L",
+    0.1: "Unranked S",
+    6: "Ranked L",
+    6.1: "Ranked S",
     7: "Wingman"
 }
 WEAPON_TRANSLATE = {
@@ -128,7 +128,7 @@ NAME_CUTOUT_KILLS = 16
 TEXT_CUTOUT_MAPSERV = 18
 DEMOS_AGE = 24 * 3
 
-VERSION = "4.5.4"
+VERSION = "4.5.5"
 PROJECT_LINK = "https://github.com/ZaharX97/OWReveal"
 PROJECT_LINK_LATEST = PROJECT_LINK + "/releases/latest"
 SITE_OWREV = "https://zahar.one/owrev"

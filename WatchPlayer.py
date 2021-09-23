@@ -76,7 +76,7 @@ class MyWatchPlayer:
         try:
             self.rank = int(self.data[6])
             self.server = self.data[7]
-            self.mode = int(self.data[8])
+            self.mode = float(self.data[8])
         except IndexError:
             self.rank = 0
             self.server = "Unknown"
