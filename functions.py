@@ -379,12 +379,6 @@ def analyze_demo(path, button):
                 break
 
     g.demo_stats = my.STATS
-    g.demo_mode = my.game_mode
-    # if g.demo_mode == 7:
-    #     g.expected_players = 4
-    # elif g.demo_mode == 6:
-    #     g.expected_players = 10
-    g.demo_nrplayers = g.demo_stats["otherdata"]["nrplayers"]
     rounds_list = [None] * (len(g.demo_stats) - 1)
     for i2 in range(1, len(g.demo_stats)):
         rounds_list[i2 - 1] = "Round " + str(i2)
@@ -594,6 +588,7 @@ def add_to_db():
                 g.list_add_db.pop(0)
             except Exception as err:
                 print(err)
+                g.list_add_db.pop(0)
         cnx.close()
         g.event_add_db.clear()
         g.event_add_db.wait()

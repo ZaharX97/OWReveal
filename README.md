@@ -8,11 +8,12 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.5.5** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.5.6** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
     * created a small site to show suspects from all people using this app  
     * [zahar.one/owrev](https://zahar.one/owrev)  
     * updated for new modes short match, long match
     * fixed [#24](https://github.com/ZaharX97/OWReveal/issues/24)
+    * matches that ended before round switch now show stats correctly
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
