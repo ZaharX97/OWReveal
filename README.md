@@ -8,12 +8,13 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.5.6** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+* v**4.5.7** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
     * created a small site to show suspects from all people using this app  
     * [zahar.one/owrev](https://zahar.one/owrev)  
     * updated for new modes short match, long match
     * fixed [#24](https://github.com/ZaharX97/OWReveal/issues/24)
     * matches that ended before round switch now show stats correctly
+    * fixed [#32](https://github.com/ZaharX97/OWReveal/issues/32)
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -23,7 +24,7 @@ CSGO Overwatch revealer by sniffing packets
 
 ## How to build a .exe from this?
 1. Install the latest python v3
-2. Install pyinstaller and all needed modules (scapy / requests / Pillow / mysql-connector)
+2. Install pyinstaller and all needed modules (scapy / requests / Pillow / mysql-connector / protobuf)
 3. Download this project and extract into a folder
 4. Open cmd/powershell in that folder
 5.
@@ -49,7 +50,7 @@ b) For app version <= 4.1.x use
 **A**: The one with _console_ opens a cmd along and prints errors or whatever print statements I forgot to remove  
 
 **Q**: What extra modules does this app use?  
-**A**: (scapy / requests / Pillow / mysql-connector)  
+**A**: (scapy / requests / Pillow / mysql-connector / protobuf)  
 
 **Q**: Not a question, but k/d/a in your app is wrong  
 **A**: Could be, in my app it's displayed as k/a/d and I'm not sure I covered all edge cases  

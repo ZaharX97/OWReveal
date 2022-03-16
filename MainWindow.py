@@ -240,6 +240,7 @@ class MainAppWindow:
             map2 = g.demo_stats["otherdata"]["header"].map_name
             # if g.demo_nrplayers == 4:
             #     map2 += "_2v2"
+            maxk = [None, None]
             for player in g.demo_stats[len(g.demo_stats) - 1].pscore:
                 if player.player.profile in to_add:
                     name = player.player.name
@@ -267,14 +268,35 @@ class MainAppWindow:
                             if not len(to_add):
                                 break
                             continue
-                        g.list_add_db.append((link, name, rank, kad, map2, mode, g.last_server, qdtt_now, qdtt_demo, 0))
-                        if not g.thread_add_to_db.is_alive():
-                            g.thread_add_to_db.start()
-                        g.event_add_db.set()
+                        if maxk[0]:
+                            if player.k > maxk[0][0]:
+                                maxk[1] = maxk[0]
+                                maxk[0] = (player.k, (link, name, rank, kad, map2, mode, g.last_server, qdtt_now, qdtt_demo, 0))
+                            else:
+                                if maxk[1]:
+                                    if player.k > maxk[1][0]:
+                                        maxk[1] = (player.k, (link, name, rank, kad, map2, mode, g.last_server, qdtt_now, qdtt_demo, 0))
+                                    elif player.k > 22:
+                                        g.list_add_db.append((link, name, rank, kad, map2, mode, g.last_server, qdtt_now, qdtt_demo, 0))
+                                else:
+                                    maxk[1] = (player.k, (link, name, rank, kad, map2, mode, g.last_server, qdtt_now, qdtt_demo, 0))
+                        else:
+                            maxk[0] = (player.k, (link, name, rank, kad, map2, mode, g.last_server, qdtt_now, qdtt_demo, 0))
+                        # g.list_add_db.append((link, name, rank, kad, map2, mode, g.last_server, qdtt_now, qdtt_demo, 0))
+                        # if not g.thread_add_to_db.is_alive():
+                        #     g.thread_add_to_db.start()
+                        # g.event_add_db.set()
                     if not len(to_add):
                         break
                 elif already_in.get(player.player.profile):
                     already_in_text += f" {player.player.name}  exists at  #{already_in[player.player.profile]['index']}  from {already_in[player.player.profile]['player'].date}   \n"
+            for sus in maxk:
+                if sus:
+                    g.list_add_db.append(sus[1])
+            if len(g.list_add_db):
+                if not g.thread_add_to_db.is_alive():
+                    g.thread_add_to_db.start()
+                g.event_add_db.set()
             wfile.close()
             if already_in_text != "":
                 AW.MyAlertWindow(self.window, already_in_text)

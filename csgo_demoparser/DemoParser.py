@@ -78,7 +78,7 @@ class DemoParser:
         if func:
             fncs = self._subscribers.get(event)
             if fncs:
-                if len(fncs) == 1:
+                if len(fncs) == 1 and fncs == func:
                     self._subscribers.pop(event)
                     return
                 for i2 in range(len(fncs)):
