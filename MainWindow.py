@@ -5,6 +5,7 @@ import webbrowser as web
 import re
 import math
 import csv
+import keyboard
 
 import scapy.all as scpa
 import scapy.layers.http as scplh
@@ -337,6 +338,16 @@ class MainAppWindow:
         if not prev and roundd < (len(g.demo_stats) - 1):
             self.btn6_round.text.set(f"Round {roundd + 1}")
             self.update_stats(roundd + 1)
+
+    def init_hotkeys(self, default_first_keys=None):
+        if default_first_keys is not None:
+            keyboard.add_hotkey("+".join((default_first_keys, "right")), self._prev_next_round)
+            keyboard.add_hotkey("+".join((default_first_keys, "left")), self._prev_next_round, args=[True])
+            keyboard.add_hotkey("+".join((default_first_keys, "up")), self._toggle_stats_frame)
+        else:
+            keyboard.add_hotkey("right", self._prev_next_round)
+            keyboard.add_hotkey("left", self._prev_next_round, args=[True])
+            keyboard.add_hotkey("up", self._toggle_stats_frame)
 
     def __init__(self, title, sizex, sizey):
         self.after_reset = False
