@@ -1,0 +1,12 @@
+/replays/**
+/build/**
+/main.spec
+/mainOld.py
+/ow_config
+/ow_config2
+/dist/**
+/OWRevealer2_console.txt
+/csgo_demoparser/test.py
+/watchlist
+/watchlist.csv
+/watchlist_old
