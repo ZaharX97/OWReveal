@@ -17,9 +17,10 @@ if __name__ == "__main__":
 
     f.import_settings()
 
+    g.app.init_hotkeys()
+
     g.app.window.iconphoto(True, tk.PhotoImage(file=fr"{g.path_resources}resources\app_icon.png"))
     g.app.window.mainloop()
 
 # todo
 # count stats in warmup? why bother
-# bind arrowkeys to change rounds in the program while in csgo, so you dont have to alt tab

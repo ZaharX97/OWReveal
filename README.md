@@ -24,7 +24,7 @@ CSGO Overwatch revealer by sniffing packets
 
 ## How to build a .exe from this?
 1. Install the latest python v3
-2. Install pyinstaller and all needed modules (scapy / requests / Pillow / mysql-connector / protobuf)
+2. Install pyinstaller and all needed modules (scapy / requests / Pillow / mysql-connector / protobuf / keyboard)
 3. Download this project and extract into a folder
 4. Open cmd/powershell in that folder
 5.
