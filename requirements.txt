@@ -1,6 +1,6 @@
 keyboard==0.13.5
-mysql-connector==2.2.9
 Pillow==9.0.1
-protobuf==3.19.4
 requests==2.27.1
 scapy==2.4.5
+protobuf==3.19.4
+mariadb~=1.0.10

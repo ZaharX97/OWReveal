@@ -8,13 +8,9 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.5.7** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
-    * created a small site to show suspects from all people using this app  
-    * [zahar.one/owrev](https://zahar.one/owrev)  
-    * updated for new modes short match, long match
-    * fixed [#24](https://github.com/ZaharX97/OWReveal/issues/24)
-    * matches that ended before round switch now show stats correctly
-    * fixed [#32](https://github.com/ZaharX97/OWReveal/issues/32)
+* v**4.6** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+    * #33 and #35
+    * added keyboard binds (left/right arrows changes round, up toggles kills/scoreboard) (thx NoPlagiarism)
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)
@@ -66,13 +62,8 @@ more info here: [time format codes](https://docs.python.org/3/library/datetime.h
   
 ## Older Versions: 
 
-* v**4.4.4** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.4.4)  
-	* created a small site to show suspects from all people using this app  
-	* [zahar.one/owrev](https://zahar.one/owrev)  
-	* fixed [issue #12](https://github.com/ZaharX97/OWReveal/issues/12), net adapter is saved to settings  
-	* fixed [issue #14](https://github.com/ZaharX97/OWReveal/issues/14), right click to copy steamid  
-	* added some kind of format to renaming demos, [more info](https://github.com/ZaharX97/OWReveal#demo-rename-format)  
-	* fixed [issue #15](https://github.com/ZaharX97/OWReveal/issues/15), right click on the link to copy demo name
+* v**4.5.7** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/4.5.7)  
+  * fixed #32
   
 * v**3.1.5** [Download](https://github.com/ZaharX97/OWReveal/releases/tag/3.1.5)  
   * changed npcap link to main site  

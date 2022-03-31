@@ -19,7 +19,7 @@ import scapy.layers.http as scplh
 import requests as req
 import PIL.Image as pili
 import PIL.ImageTk as piltk
-from mysql import connector as sql
+import mariadb as sql
 
 import myglobals as g
 import AlertWindow as AW
@@ -574,7 +574,7 @@ def actual_check_vac():
 
 
 def add_to_db():
-    query = "CALL insert_sus(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+    query = "CALL insert_sus(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
     while True:
         cnx = sql.connect(**g.dbconfig)
         crs = cnx.cursor()
