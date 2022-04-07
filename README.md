@@ -8,9 +8,8 @@ CSGO Overwatch revealer by sniffing packets
 
 ## Latest Version:  
   
-* v**4.6** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
-    * #33 and #35
-    * added keybinds (left/right arrows changes round, up toggles kills/scoreboard) (thx NoPlagiarism)
+* v**4.6.1** [Download](https://github.com/ZaharX97/OWReveal/releases/latest)  
+    * fixed #36 (#37) (deleted steam accounts caused a function to get stuck)
   
 ## How to use?
 1. Download and install npcap (https://nmap.org/npcap/)

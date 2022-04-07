@@ -538,8 +538,9 @@ def actual_check_vac():
             r = req.get(g.steam_bans_api + g.settings_dict["steam_api_key"] + "&steamids=" + psteam64)
             if r.status_code == req.codes.ok:
                 data = r.json()
-                if not data['players']:
-                    print(f"STEAM PROFILE {psteam64} HAS BEEN DELETED")
+                if not data["players"]:
+                    failed += 1
+                    failedpb += f"#{str(pnumber)} / "
                     cwr.writerow(player.ret_csv())
                     continue
                 if data["players"][0]["NumberOfVACBans"] + data["players"][0]["NumberOfGameBans"] > 0:
@@ -570,9 +571,9 @@ def actual_check_vac():
     os.remove(g.path_exec_folder + "watchlist")
     os.rename(g.path_exec_folder + "watchlist.temp", g.path_exec_folder + "watchlist")
     text = "{} new bans.\n".format(newbans)
-    text += newpb
+    text += newpb + "\n"
     if failed > 0:
-        text += f"Failed to check {failed} players: {failedpb}"
+        text += f"Failed to check {failed} players: {failedpb[:-2]}\n"
     g.app.btn8_watchlist.text.set("WatchList")
     AW.MyAlertWindow(g.app.window, text, "VAC check")
 
