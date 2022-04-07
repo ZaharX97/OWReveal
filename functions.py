@@ -538,6 +538,10 @@ def actual_check_vac():
             r = req.get(g.steam_bans_api + g.settings_dict["steam_api_key"] + "&steamids=" + psteam64)
             if r.status_code == req.codes.ok:
                 data = r.json()
+                if not data['players']:
+                    print(f"STEAM PROFILE {psteam64} HAS BEEN DELETED")
+                    cwr.writerow(player.ret_csv())
+                    continue
                 if data["players"][0]["NumberOfVACBans"] + data["players"][0]["NumberOfGameBans"] > 0:
                     days = data["players"][0]["DaysSinceLastBan"]
                     delta = dt.datetime.now().astimezone() - player.dtt
