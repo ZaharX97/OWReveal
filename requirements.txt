@@ -2,5 +2,5 @@ keyboard==0.13.5
 Pillow==9.0.1
 requests==2.27.1
 scapy==2.4.5
-protobuf==3.19.4
+protobuf==3.19.5
 mariadb~=1.0.10
