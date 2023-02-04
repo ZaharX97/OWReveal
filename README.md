@@ -4,7 +4,6 @@ CSGO Overwatch revealer by sniffing packets
 
 ![Main window](https://i.imgur.com/lulwtDh.png) ![WatchList](https://i.imgur.com/LEablcb.png)
 
-## Suspects added by people: [zahar.one/owrev](https://zahar.one/owrev)
 
 ## Latest Version:  
   
