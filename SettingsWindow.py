@@ -19,7 +19,7 @@ class SettingsWindow:
         self._update_buttons(self.btn_set3)
         self._update_buttons(self.btn_set5)
         self._update_buttons(self.btn_set6)
-        self._update_buttons(self.btn_set7)
+        # self._update_buttons(self.btn_set7)
         self._update_buttons(self.btn_set8)
         if g.settings_dict["auto_dl"] and g.settings_dict["browser_dl"]:
             self._change_setting(self.btn_set2)
@@ -132,7 +132,7 @@ class SettingsWindow:
         self.btn_set2 = btk.MyButtonStyle(self.window, "OFF", lambda: self._change_setting(self.btn_set2), "browser_dl")
         self.btn_set2.btn.grid(row=3, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
 
-        def lc_event2(event):
+        """def lc_event2(event):
             if g.browser_path is None:
                 web.open_new_tab(g.SITE_OWREV)
             else:
@@ -143,7 +143,7 @@ class SettingsWindow:
         self.btn_set7 = btk.MyButtonStyle(self.window, "ON", lambda: self._change_setting(self.btn_set7), "add_to_db")
         self.btn_set7.btn.grid(row=4, column=0, sticky=tk.W + tk.E, padx=5, pady=5)
         self.label_set7.frame.config(cursor="hand2")
-        self.label_set7.frame.bind("<Button-1>", lc_event2)
+        self.label_set7.frame.bind("<Button-1>", lc_event2)"""
 
         self.label_set3 = btk.MyLabelStyle(self.window,
                                            "*" * 50 + "Download location when not using the browser" + "*" * 50)
