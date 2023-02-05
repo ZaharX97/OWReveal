@@ -19,7 +19,7 @@ import scapy.layers.http as scplh
 import requests as req
 import PIL.Image as pili
 import PIL.ImageTk as piltk
-import mariadb as sql
+# import mariadb as sql
 
 import myglobals as g
 import AlertWindow as AW
@@ -578,7 +578,8 @@ def actual_check_vac():
     AW.MyAlertWindow(g.app.window, text, "VAC check")
 
 
-def add_to_db():
+"""def add_to_db():
+    # Disabled in https://github.com/ZaharX97/OWReveal/pull/45
     query = "CALL insert_sus(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
     while True:
         cnx = sql.connect(**g.dbconfig)
@@ -596,7 +597,7 @@ def add_to_db():
                 g.list_add_db.pop(0)
         cnx.close()
         g.event_add_db.clear()
-        g.event_add_db.wait()
+        g.event_add_db.wait()"""
 
 
 def check_csv():

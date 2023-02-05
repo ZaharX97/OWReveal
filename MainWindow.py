@@ -259,7 +259,7 @@ class MainAppWindow:
                     # wfile.write("{}={} {}={} ".format(len(str(rank)), rank, len(g.last_server), g.last_server))
                     # wfile.write("{}={} 2=-1\n".format(len(str(mode)), mode))
                     to_add.remove(player.player.profile)
-                    if g.settings_dict["add_to_db"] and self.entry1_url.text.get() != "":
+                    """if g.settings_dict["add_to_db"] and self.entry1_url.text.get() != "":
                         # delta = dt.timedelta(hours=g.DEMOS_AGE)
                         # if (dt.datetime.now().astimezone(dt.timezone.utc) - g.demo_date) > delta or g.demo_stats["otherdata"]["header"].server_name.upper().find("VALVE") == -1:
                         #     if not len(to_add):
@@ -288,16 +288,16 @@ class MainAppWindow:
                         #     g.thread_add_to_db.start()
                         # g.event_add_db.set()
                     if not len(to_add):
-                        break
-                elif already_in.get(player.player.profile):
+                        break"""
+                if already_in.get(player.player.profile):
                     already_in_text += f" {player.player.name}  exists at  #{already_in[player.player.profile]['index']}  from {already_in[player.player.profile]['player'].date}   \n"
-            for sus in maxk:
+            """for sus in maxk:
                 if sus:
                     g.list_add_db.append(sus[1])
             if len(g.list_add_db):
                 if not g.thread_add_to_db.is_alive():
                     g.thread_add_to_db.start()
-                g.event_add_db.set()
+                g.event_add_db.set()"""
             wfile.close()
             if already_in_text != "":
                 AW.MyAlertWindow(self.window, already_in_text)

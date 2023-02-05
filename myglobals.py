@@ -12,7 +12,7 @@ settings_dict = {
     "rename_dl": False,
     "auto_dl": True,
     "delete_after": True,
-    "add_to_db": True,
+    # "add_to_db": True,
     "vac_delay": 1000,
     "steam_api_key": "",
     "net_interface": "",
@@ -135,7 +135,7 @@ SITE_OWREV = "https://zahar.one/owrev"
 
 csv_header = ["steamid", "banned", "demo_date", "name", "kad", "map", "rank", "server", "game_mode", "ban_speed", "comments"]
 list_links = list()
-list_add_db = list()
+# list_add_db = list()
 profile_links = dict()
 windows_scaling = 100
 stats_active = True
@@ -156,13 +156,13 @@ thread_sniff = t.Thread()
 thread_download = t.Thread()
 thread_analyze = t.Thread()
 thread_check_vac = t.Thread()
-thread_add_to_db = t.Thread(target=f.add_to_db, daemon=True)
+# thread_add_to_db = t.Thread(target=f.add_to_db, daemon=True)
 thread_export = t.Thread()
-event_add_db = t.Event()
+# event_add_db = t.Event()
 event_pkt_found = t.Event()
 event_check_vac = t.Event()
 app = None
 
-dbconfig = {
+"""dbconfig = {
     "CENSORED"
-}
+}"""

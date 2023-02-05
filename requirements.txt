@@ -3,4 +3,3 @@ pillow>=9.2.0
 requests==2.27.1
 scapy==2.4.5
 protobuf>=3.19.5
-mariadb~=1.0.10
